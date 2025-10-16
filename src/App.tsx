@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Gallery from "./pages/Gallery";
 import Auth from "./pages/Auth";
 import PostDetail from "./pages/PostDetail";
+import CreatePost from "./pages/CreatePost";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +24,8 @@ const App = () => (
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/post/:id" element={<PostDetail />} />
+          <Route path="/create" element={<CreatePost />} />
+          <Route path="/profile" element={<Profile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

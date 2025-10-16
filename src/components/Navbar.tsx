@@ -23,8 +23,11 @@ const Navbar = () => {
             <Link to="/gallery" className="text-foreground hover:text-primary transition-colors">
               Gallery
             </Link>
-            <Link to="/auth" className="text-foreground hover:text-primary transition-colors">
-              Sign In
+            <Link to="/create" className="text-foreground hover:text-primary transition-colors">
+              Create
+            </Link>
+            <Link to="/profile" className="text-foreground hover:text-primary transition-colors">
+              Profile
             </Link>
             <Link to="/auth">
               <Button variant="hero" size="sm">
@@ -53,11 +56,18 @@ const Navbar = () => {
               Gallery
             </Link>
             <Link
-              to="/auth"
+              to="/create"
               className="block text-foreground hover:text-primary transition-colors py-2"
               onClick={() => setIsOpen(false)}
             >
-              Sign In
+              Create
+            </Link>
+            <Link
+              to="/profile"
+              className="block text-foreground hover:text-primary transition-colors py-2"
+              onClick={() => setIsOpen(false)}
+            >
+              Profile
             </Link>
             <Link to="/auth" onClick={() => setIsOpen(false)}>
               <Button variant="hero" size="sm" className="w-full">
