@@ -10,6 +10,8 @@ import PostDetail from "./pages/PostDetail";
 import CreatePost from "./pages/CreatePost";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import Footer from "./components/Footer";
+import CookieConsent from "./components/CookieConsent";
 
 const queryClient = new QueryClient();
 
@@ -21,11 +23,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/post/:id" element={<PostDetail />} />
-          <Route path="/create" element={<CreatePost />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/gallery" element={<><Gallery /><Footer /><CookieConsent /></>} />
+          <Route path="/auth" element={<><Auth /><Footer /><CookieConsent /></>} />
+          <Route path="/post/:id" element={<><PostDetail /><Footer /><CookieConsent /></>} />
+          <Route path="/create" element={<><CreatePost /><Footer /><CookieConsent /></>} />
+          <Route path="/profile" element={<><Profile /><Footer /><CookieConsent /></>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -2,8 +2,33 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Hero = () => {
+  const [stats, setStats] = useState({
+    posts: 0,
+    users: 0,
+    likes: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [postsResult, usersResult, likesResult] = await Promise.all([
+        supabase.from("posts").select("*", { count: "exact", head: true }),
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("likes").select("*", { count: "exact", head: true }),
+      ]);
+
+      setStats({
+        posts: postsResult.count || 0,
+        users: usersResult.count || 0,
+        likes: likesResult.count || 0,
+      });
+    };
+
+    fetchStats();
+  }, []);
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background */}
@@ -56,16 +81,22 @@ const Hero = () => {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-8 mt-20 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
           <div className="glass-effect p-6 rounded-2xl">
-            <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">10K+</div>
+            <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
+              {stats.posts.toLocaleString()}
+            </div>
             <div className="text-sm text-muted-foreground">AI Images</div>
           </div>
           <div className="glass-effect p-6 rounded-2xl">
-            <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">5K+</div>
+            <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
+              {stats.users.toLocaleString()}
+            </div>
             <div className="text-sm text-muted-foreground">Creators</div>
           </div>
           <div className="glass-effect p-6 rounded-2xl">
-            <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">50K+</div>
-            <div className="text-sm text-muted-foreground">Prompts Shared</div>
+            <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
+              {stats.likes.toLocaleString()}
+            </div>
+            <div className="text-sm text-muted-foreground">Likes</div>
           </div>
         </div>
       </div>

@@ -1,10 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Sparkles, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/10">
@@ -23,17 +37,23 @@ const Navbar = () => {
             <Link to="/gallery" className="text-foreground hover:text-primary transition-colors">
               Gallery
             </Link>
-            <Link to="/create" className="text-foreground hover:text-primary transition-colors">
-              Create
-            </Link>
-            <Link to="/profile" className="text-foreground hover:text-primary transition-colors">
-              Profile
-            </Link>
-            <Link to="/auth">
-              <Button variant="hero" size="sm">
-                Get Started
-              </Button>
-            </Link>
+            {isAuthenticated && (
+              <>
+                <Link to="/create" className="text-foreground hover:text-primary transition-colors">
+                  Create
+                </Link>
+                <Link to="/profile" className="text-foreground hover:text-primary transition-colors">
+                  Profile
+                </Link>
+              </>
+            )}
+            {!isAuthenticated && (
+              <Link to="/auth">
+                <Button variant="hero" size="sm">
+                  Get Started
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -55,25 +75,31 @@ const Navbar = () => {
             >
               Gallery
             </Link>
-            <Link
-              to="/create"
-              className="block text-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setIsOpen(false)}
-            >
-              Create
-            </Link>
-            <Link
-              to="/profile"
-              className="block text-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setIsOpen(false)}
-            >
-              Profile
-            </Link>
-            <Link to="/auth" onClick={() => setIsOpen(false)}>
-              <Button variant="hero" size="sm" className="w-full">
-                Get Started
-              </Button>
-            </Link>
+            {isAuthenticated && (
+              <>
+                <Link
+                  to="/create"
+                  className="block text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Create
+                </Link>
+                <Link
+                  to="/profile"
+                  className="block text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Profile
+                </Link>
+              </>
+            )}
+            {!isAuthenticated && (
+              <Link to="/auth" onClick={() => setIsOpen(false)}>
+                <Button variant="hero" size="sm" className="w-full">
+                  Get Started
+                </Button>
+              </Link>
+            )}
           </div>
         )}
       </div>
