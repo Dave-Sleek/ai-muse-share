@@ -92,6 +92,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          actor_id: string
+          comment_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          post_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actor_id: string
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          post_id: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          post_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           created_at: string

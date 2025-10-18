@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, MessageCircle, Share2, Twitter, Facebook, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { Heart, MessageCircle, Share2, ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
-import { User } from "@supabase/supabase-js";
+import Footer from "@/components/Footer";
 
 interface Post {
   id: string;
@@ -35,64 +35,123 @@ const PostDetail = () => {
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
-  const [liked, setLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [user, setUser] = useState<User | null>(null);
-  const { toast } = useToast();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-    };
-    checkAuth();
+    fetchPost();
+    fetchComments();
+    checkIfLiked();
+    fetchLikeCount();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setCurrentUser(session?.user || null);
+      }
+    );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
-    if (id) {
-      fetchPost();
-      fetchComments();
-      checkLiked();
-      fetchLikeCount();
-    }
-  }, [id, user]);
+    const channel = supabase
+      .channel(`post-${id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "comments",
+          filter: `post_id=eq.${id}`,
+        },
+        () => {
+          fetchComments();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "likes",
+          filter: `post_id=eq.${id}`,
+        },
+        () => {
+          fetchLikeCount();
+          checkIfLiked();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
 
   const fetchPost = async () => {
-    const { data, error } = await supabase
+    setLoading(true);
+    const { data: postData, error: postError } = await supabase
       .from("posts")
-      .select("*, profiles(username)")
+      .select("*")
       .eq("id", id)
       .single();
 
-    if (error) {
+    if (postError) {
+      console.error("Error fetching post:", postError);
       toast({
         title: "Error",
-        description: "Post not found",
+        description: "Failed to load post",
         variant: "destructive",
       });
-      navigate("/gallery");
+      setLoading(false);
       return;
     }
-    setPost(data);
+
+    if (postData) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", postData.user_id)
+        .single();
+
+      setPost({
+        ...postData,
+        profiles: profile || { username: "Unknown" },
+      });
+    }
+    setLoading(false);
   };
 
   const fetchComments = async () => {
-    const { data } = await supabase
+    const { data: commentsData, error } = await supabase
       .from("comments")
-      .select("*, profiles(username)")
+      .select("*")
       .eq("post_id", id)
       .order("created_at", { ascending: false });
 
-    setComments(data || []);
+    if (!error && commentsData) {
+      const enrichedComments = await Promise.all(
+        commentsData.map(async (comment) => {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("username")
+            .eq("id", comment.user_id)
+            .single();
+
+          return {
+            ...comment,
+            profiles: profile || { username: "Unknown" },
+          };
+        })
+      );
+      setComments(enrichedComments);
+    }
   };
 
-  const checkLiked = async () => {
+  const checkIfLiked = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data } = await supabase
@@ -102,7 +161,7 @@ const PostDetail = () => {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    setLiked(!!data);
+    setIsLiked(!!data);
   };
 
   const fetchLikeCount = async () => {
@@ -115,41 +174,45 @@ const PostDetail = () => {
   };
 
   const handleLike = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast({
-        title: "Sign in required",
-        description: "Please sign in to like posts",
+        title: "Authentication required",
+        description: "Please log in to like posts",
       });
+      navigate("/auth");
       return;
     }
 
-    if (liked) {
-      await supabase.from("likes").delete().eq("post_id", id).eq("user_id", user.id);
-      setLiked(false);
-      setLikeCount((prev) => prev - 1);
+    if (isLiked) {
+      await supabase
+        .from("likes")
+        .delete()
+        .eq("post_id", id)
+        .eq("user_id", user.id);
     } else {
-      await supabase.from("likes").insert({ post_id: id, user_id: user.id });
-      setLiked(true);
-      setLikeCount((prev) => prev + 1);
+      await supabase
+        .from("likes")
+        .insert({ post_id: id, user_id: user.id });
     }
   };
 
   const handleComment = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast({
-        title: "Sign in required",
-        description: "Please sign in to comment",
+        title: "Authentication required",
+        description: "Please log in to comment",
       });
+      navigate("/auth");
       return;
     }
 
     if (!newComment.trim()) return;
 
-    const { error } = await supabase.from("comments").insert({
-      post_id: id,
-      user_id: user.id,
-      content: newComment,
-    });
+    const { error } = await supabase
+      .from("comments")
+      .insert({ post_id: id, user_id: user.id, content: newComment });
 
     if (error) {
       toast({
@@ -157,44 +220,48 @@ const PostDetail = () => {
         description: "Failed to post comment",
         variant: "destructive",
       });
-      return;
+    } else {
+      setNewComment("");
+      toast({
+        title: "Success",
+        description: "Comment posted successfully",
+      });
     }
-
-    setNewComment("");
-    fetchComments();
-    toast({
-      title: "Success",
-      description: "Comment posted!",
-    });
   };
 
   const shareToSocial = (platform: string) => {
-    if (!post) return;
-
-    const text = `Check out this amazing AI art: "${post.title}"\nPrompt: ${post.prompt}`;
     const url = window.location.href;
+    const text = `Check out this AI art: ${post?.title}`;
 
-    const urls: Record<string, string> = {
+    const urls: { [key: string]: string } = {
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
     };
 
     if (platform === "copy") {
-      navigator.clipboard.writeText(text);
+      navigator.clipboard.writeText(url);
       toast({
-        title: "Copied!",
-        description: "Prompt copied to clipboard",
+        title: "Link copied",
+        description: "Post link copied to clipboard",
       });
     } else {
       window.open(urls[platform], "_blank");
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (!post) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p>Post not found</p>
       </div>
     );
   }
@@ -202,108 +269,114 @@ const PostDetail = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Image Section */}
-            <div className="glass-effect rounded-2xl overflow-hidden">
-              <img
-                src={post.image_url}
-                alt={post.title}
-                className="w-full aspect-square object-cover"
-              />
+      <div className="max-w-4xl mx-auto px-4 py-8 mt-16">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+
+        <div className="glass-effect rounded-2xl overflow-hidden">
+          <img
+            src={post.image_url}
+            alt={post.title}
+            className="w-full h-[500px] object-cover"
+          />
+          <div className="p-6">
+            <h1 className="text-3xl font-bold mb-2">{post.title}</h1>
+            <p className="text-muted-foreground mb-4">
+              by {post.profiles.username}
+            </p>
+            <p className="text-lg mb-6">{post.prompt}</p>
+
+            <div className="flex items-center gap-4 mb-6">
+              <Button
+                variant={isLiked ? "default" : "outline"}
+                size="sm"
+                onClick={handleLike}
+              >
+                <Heart className={`w-4 h-4 mr-2 ${isLiked ? "fill-current" : ""}`} />
+                {likeCount} Likes
+              </Button>
+              <Button variant="outline" size="sm">
+                <MessageCircle className="w-4 h-4 mr-2" />
+                {comments.length} Comments
+              </Button>
             </div>
 
-            {/* Details Section */}
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-4xl font-bold mb-2">{post.title}</h1>
-                <p className="text-muted-foreground">by {post.profiles.username}</p>
-              </div>
+            <div className="flex gap-2 mb-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => shareToSocial("twitter")}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Twitter
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => shareToSocial("facebook")}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Facebook
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => shareToSocial("linkedin")}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                LinkedIn
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => shareToSocial("copy")}
+              >
+                Copy Link
+              </Button>
+            </div>
 
-              {/* Prompt */}
-              <div className="glass-effect p-6 rounded-2xl">
-                <h2 className="text-xl font-semibold mb-3 gradient-text">Prompt</h2>
-                <p className="text-foreground leading-relaxed">{post.prompt}</p>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-4">
-                <Button
-                  variant={liked ? "default" : "outline"}
-                  onClick={handleLike}
-                  className="flex-1"
-                >
-                  <Heart className={`w-5 h-5 ${liked ? "fill-current" : ""}`} />
-                  {likeCount}
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  <MessageCircle className="w-5 h-5" />
-                  {comments.length}
-                </Button>
-              </div>
-
-              {/* Share Buttons */}
-              <div className="glass-effect p-4 rounded-2xl">
-                <h3 className="font-semibold mb-3">Share This Prompt</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" onClick={() => shareToSocial("twitter")}>
-                    <Twitter className="w-4 h-4" />
-                    Twitter
-                  </Button>
-                  <Button variant="outline" onClick={() => shareToSocial("facebook")}>
-                    <Facebook className="w-4 h-4" />
-                    Facebook
-                  </Button>
-                  <Button variant="outline" onClick={() => shareToSocial("linkedin")}>
-                    <Share2 className="w-4 h-4" />
-                    LinkedIn
-                  </Button>
-                  <Button variant="outline" onClick={() => shareToSocial("copy")}>
-                    <LinkIcon className="w-4 h-4" />
-                    Copy
-                  </Button>
+            <div className="border-t pt-6">
+              <h3 className="text-xl font-semibold mb-4">Comments</h3>
+              {currentUser ? (
+                <div className="mb-6">
+                  <Textarea
+                    placeholder="Write a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="mb-2"
+                  />
+                  <Button onClick={handleComment}>Post Comment</Button>
                 </div>
-              </div>
+              ) : (
+                <p className="text-muted-foreground mb-6">
+                  Please log in to comment
+                </p>
+              )}
 
-              {/* Comments Section */}
-              <div className="glass-effect p-6 rounded-2xl space-y-4">
-                <h3 className="text-xl font-semibold">Comments</h3>
-
-                {user && (
-                  <div className="space-y-2">
-                    <Textarea
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Share your thoughts..."
-                      className="bg-background/50"
-                    />
-                    <Button onClick={handleComment} variant="hero">
-                      Post Comment
-                    </Button>
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="bg-background/50 p-4 rounded-xl">
-                      <p className="font-semibold text-sm text-primary mb-1">
-                        {comment.profiles.username}
-                      </p>
-                      <p className="text-sm text-foreground">{comment.content}</p>
-                    </div>
-                  ))}
-                  {comments.length === 0 && (
-                    <p className="text-center text-muted-foreground py-8">
-                      No comments yet. Be the first to comment!
+              <div className="space-y-4">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="glass-effect p-4 rounded-lg">
+                    <p className="font-medium mb-1">
+                      {comment.profiles.username}
                     </p>
-                  )}
-                </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {new Date(comment.created_at).toLocaleDateString()}
+                    </p>
+                    <p>{comment.content}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

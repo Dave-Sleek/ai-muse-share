@@ -3,6 +3,7 @@ import { Sparkles, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import Notifications from "./Notifications";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,7 +34,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-4">
             <Link to="/gallery" className="text-foreground hover:text-primary transition-colors">
               Gallery
             </Link>
@@ -45,6 +46,7 @@ const Navbar = () => {
                 <Link to="/profile" className="text-foreground hover:text-primary transition-colors">
                   Profile
                 </Link>
+                <Notifications />
               </>
             )}
             {!isAuthenticated && (
