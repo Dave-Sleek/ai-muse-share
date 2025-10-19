@@ -292,8 +292,8 @@ const PostDetail = () => {
             </p>
             <p className="text-lg mb-6">{post.prompt}</p>
 
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-4 flex-wrap">
                 <Button
                   variant={isLiked ? "default" : "outline"}
                   size="sm"
@@ -310,7 +310,7 @@ const PostDetail = () => {
               
               {currentUser && post.user_id === currentUser.id && (
                 <Link to={`/edit/${post.id}`}>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto">
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Post
                   </Button>
