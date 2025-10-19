@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, MessageCircle, Share2 } from "lucide-react";
+import { Heart, MessageCircle, Share2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -21,12 +22,29 @@ interface Post {
 
 const Gallery = () => {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredPosts(posts);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = posts.filter(
+        (post) =>
+          post.title.toLowerCase().includes(query) ||
+          post.prompt.toLowerCase().includes(query) ||
+          post.profiles.username.toLowerCase().includes(query)
+      );
+      setFilteredPosts(filtered);
+    }
+  }, [searchQuery, posts]);
 
   const fetchPosts = async () => {
     try {
@@ -42,6 +60,7 @@ const Gallery = () => {
 
       if (error) throw error;
       setPosts(data || []);
+      setFilteredPosts(data || []);
     } catch (error) {
       console.error("Error fetching posts:", error);
       toast({
@@ -83,17 +102,31 @@ const Gallery = () => {
       <Navbar />
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-12 text-center">
+          <div className="mb-8 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Discover <span className="gradient-text">AI Masterpieces</span>
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-muted-foreground mb-6">
               Explore prompts and creations from our creative community
             </p>
+            
+            {/* Search Bar */}
+            <div className="max-w-xl mx-auto">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search by title, prompt, or username..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-background/50 border-border"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post, index) => (
+            {filteredPosts.map((post, index) => (
               <div
                 key={post.id}
                 className="glass-effect rounded-2xl overflow-hidden hover-lift group"
@@ -149,6 +182,14 @@ const Gallery = () => {
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">
                 No posts yet. Be the first to share your AI art!
+              </p>
+            </div>
+          )}
+
+          {posts.length > 0 && filteredPosts.length === 0 && (
+            <div className="text-center py-12 col-span-full">
+              <p className="text-muted-foreground text-lg">
+                No posts found matching "{searchQuery}"
               </p>
             </div>
           )}

@@ -8,6 +8,7 @@ import Gallery from "./pages/Gallery";
 import Auth from "./pages/Auth";
 import PostDetail from "./pages/PostDetail";
 import CreatePost from "./pages/CreatePost";
+import EditPost from "./pages/EditPost";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/auth" element={<><Auth /><Footer /><CookieConsent /></>} />
           <Route path="/post/:id" element={<><PostDetail /><Footer /><CookieConsent /></>} />
           <Route path="/create" element={<><CreatePost /><Footer /><CookieConsent /></>} />
+          <Route path="/edit/:id" element={<><EditPost /><Footer /><CookieConsent /></>} />
           <Route path="/profile" element={<><Profile /><Footer /><CookieConsent /></>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

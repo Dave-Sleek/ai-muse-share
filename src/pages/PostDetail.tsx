@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, Share2, ArrowLeft, Loader2 } from "lucide-react";
+import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -292,19 +292,30 @@ const PostDetail = () => {
             </p>
             <p className="text-lg mb-6">{post.prompt}</p>
 
-            <div className="flex items-center gap-4 mb-6">
-              <Button
-                variant={isLiked ? "default" : "outline"}
-                size="sm"
-                onClick={handleLike}
-              >
-                <Heart className={`w-4 h-4 mr-2 ${isLiked ? "fill-current" : ""}`} />
-                {likeCount} Likes
-              </Button>
-              <Button variant="outline" size="sm">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                {comments.length} Comments
-              </Button>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant={isLiked ? "default" : "outline"}
+                  size="sm"
+                  onClick={handleLike}
+                >
+                  <Heart className={`w-4 h-4 mr-2 ${isLiked ? "fill-current" : ""}`} />
+                  {likeCount} Likes
+                </Button>
+                <Button variant="outline" size="sm">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  {comments.length} Comments
+                </Button>
+              </div>
+              
+              {currentUser && post.user_id === currentUser.id && (
+                <Link to={`/edit/${post.id}`}>
+                  <Button variant="outline" size="sm">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Post
+                  </Button>
+                </Link>
+              )}
             </div>
 
             <div className="mb-6">
