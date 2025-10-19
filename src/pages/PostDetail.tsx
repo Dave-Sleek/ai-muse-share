@@ -307,38 +307,42 @@ const PostDetail = () => {
               </Button>
             </div>
 
-            <div className="flex gap-2 mb-6">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => shareToSocial("twitter")}
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Twitter
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => shareToSocial("facebook")}
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Facebook
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => shareToSocial("linkedin")}
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                LinkedIn
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => shareToSocial("copy")}
-              >
-                Copy Link
-              </Button>
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold mb-2">Share this post</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => shareToSocial("twitter")}
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Twitter
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => shareToSocial("facebook")}
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Facebook
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => shareToSocial("linkedin")}
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  LinkedIn
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => shareToSocial("copy")}
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Copy Link
+                </Button>
+              </div>
             </div>
 
             <div className="border-t pt-6">

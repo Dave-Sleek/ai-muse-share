@@ -38,7 +38,7 @@ const Navbar = () => {
             <Link to="/gallery" className="text-foreground hover:text-primary transition-colors">
               Gallery
             </Link>
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <>
                 <Link to="/create" className="text-foreground hover:text-primary transition-colors">
                   Create
@@ -48,8 +48,7 @@ const Navbar = () => {
                 </Link>
                 <Notifications />
               </>
-            )}
-            {!isAuthenticated && (
+            ) : (
               <Link to="/auth">
                 <Button variant="hero" size="sm">
                   Get Started
@@ -77,7 +76,7 @@ const Navbar = () => {
             >
               Gallery
             </Link>
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <>
                 <Link
                   to="/create"
@@ -93,9 +92,11 @@ const Navbar = () => {
                 >
                   Profile
                 </Link>
+                <div className="py-2">
+                  <Notifications />
+                </div>
               </>
-            )}
-            {!isAuthenticated && (
+            ) : (
               <Link to="/auth" onClick={() => setIsOpen(false)}>
                 <Button variant="hero" size="sm" className="w-full">
                   Get Started
