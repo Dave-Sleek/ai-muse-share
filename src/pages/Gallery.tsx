@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, MessageCircle, Share2, Search } from "lucide-react";
+import { Heart, MessageCircle, Share2, Search, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,7 @@ interface Post {
   };
   likes: { id: string }[];
   comments: { id: string }[];
+  post_views: { id: string }[];
 }
 
 const Gallery = () => {
@@ -54,7 +55,8 @@ const Gallery = () => {
           *,
           profiles(username),
           likes(id),
-          comments(id)
+          comments(id),
+          post_views(id)
         `)
         .order("created_at", { ascending: false });
 
@@ -164,6 +166,10 @@ const Gallery = () => {
                       <button className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
                         <MessageCircle className="w-4 h-4" />
                         <span className="text-sm">{post.comments.length}</span>
+                      </button>
+                      <button className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+                        <Eye className="w-4 h-4" />
+                        <span className="text-sm">{post.post_views.length}</span>
                       </button>
                       <button
                         onClick={() => sharePrompt(post.prompt, post.title)}

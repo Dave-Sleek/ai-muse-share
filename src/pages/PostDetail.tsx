@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit } from "lucide-react";
+import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit, Eye } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -37,6 +37,7 @@ const PostDetail = () => {
   const [newComment, setNewComment] = useState("");
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [viewCount, setViewCount] = useState(0);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +46,8 @@ const PostDetail = () => {
     fetchComments();
     checkIfLiked();
     fetchLikeCount();
+    fetchViewCount();
+    trackView();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -54,6 +57,19 @@ const PostDetail = () => {
 
     return () => subscription.unsubscribe();
   }, [id]);
+
+  const trackView = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    await supabase
+      .from("post_views")
+      .insert({ 
+        post_id: id, 
+        user_id: user?.id || null 
+      })
+      .select()
+      .maybeSingle();
+  };
 
   useEffect(() => {
     const channel = supabase
@@ -171,6 +187,15 @@ const PostDetail = () => {
       .eq("post_id", id);
 
     setLikeCount(count || 0);
+  };
+
+  const fetchViewCount = async () => {
+    const { count } = await supabase
+      .from("post_views")
+      .select("*", { count: "exact", head: true })
+      .eq("post_id", id);
+
+    setViewCount(count || 0);
   };
 
   const handleLike = async () => {
@@ -305,6 +330,10 @@ const PostDetail = () => {
                 <Button variant="outline" size="sm">
                   <MessageCircle className="w-4 h-4 mr-2" />
                   {comments.length} Comments
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Eye className="w-4 h-4 mr-2" />
+                  {viewCount} Views
                 </Button>
               </div>
               

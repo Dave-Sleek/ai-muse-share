@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Heart, MessageCircle } from "lucide-react";
+import { User, LogOut, Heart, MessageCircle, Eye, Users } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Link } from "react-router-dom";
 
@@ -20,12 +20,15 @@ interface Post {
   created_at: string;
   likes: { id: string }[];
   comments: { id: string }[];
+  post_views: { id: string }[];
 }
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -40,6 +43,7 @@ const Profile = () => {
       setUser(session.user);
       fetchProfile(session.user.id);
       fetchPosts(session.user.id);
+      fetchFollowCounts(session.user.id);
     };
     checkAuth();
 
@@ -50,6 +54,7 @@ const Profile = () => {
         setUser(session.user);
         fetchProfile(session.user.id);
         fetchPosts(session.user.id);
+        fetchFollowCounts(session.user.id);
       }
     });
 
@@ -78,7 +83,8 @@ const Profile = () => {
         .select(`
           *,
           likes(id),
-          comments(id)
+          comments(id),
+          post_views(id)
         `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
@@ -89,6 +95,25 @@ const Profile = () => {
       console.error("Error fetching posts:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFollowCounts = async (userId: string) => {
+    try {
+      const { count: followers } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("following_id", userId);
+
+      const { count: following } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("follower_id", userId);
+
+      setFollowerCount(followers || 0);
+      setFollowingCount(following || 0);
+    } catch (error) {
+      console.error("Error fetching follow counts:", error);
     }
   };
 
@@ -157,6 +182,20 @@ const Profile = () => {
                     </span>
                     <p className="text-sm text-muted-foreground">Likes</p>
                   </div>
+                  <div>
+                    <span className="text-2xl font-bold gradient-text">
+                      {posts.reduce((sum, post) => sum + post.post_views.length, 0)}
+                    </span>
+                    <p className="text-sm text-muted-foreground">Views</p>
+                  </div>
+                  <div>
+                    <span className="text-2xl font-bold gradient-text">{followerCount}</span>
+                    <p className="text-sm text-muted-foreground">Followers</p>
+                  </div>
+                  <div>
+                    <span className="text-2xl font-bold gradient-text">{followingCount}</span>
+                    <p className="text-sm text-muted-foreground">Following</p>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -215,6 +254,10 @@ const Profile = () => {
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <MessageCircle className="w-4 h-4" />
                         <span className="text-sm">{post.comments.length}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Eye className="w-4 h-4" />
+                        <span className="text-sm">{post.post_views.length}</span>
                       </div>
                     </div>
                   </div>

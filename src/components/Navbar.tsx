@@ -43,6 +43,9 @@ const Navbar = () => {
                 <Link to="/create" className="text-foreground hover:text-primary transition-colors">
                   Create
                 </Link>
+                <Link to="/discover" className="text-foreground hover:text-primary transition-colors">
+                  Discover
+                </Link>
                 <Link to="/profile" className="text-foreground hover:text-primary transition-colors">
                   Profile
                 </Link>
@@ -84,6 +87,13 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   Create
+                </Link>
+                <Link
+                  to="/discover"
+                  className="block text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Discover
                 </Link>
                 <Link
                   to="/profile"
