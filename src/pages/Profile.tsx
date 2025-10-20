@@ -132,7 +132,7 @@ const Profile = () => {
     }
 
     try {
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      const { error } = await supabase.functions.invoke('delete-account');
       if (error) throw error;
 
       toast({
