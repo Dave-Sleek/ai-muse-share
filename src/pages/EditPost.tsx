@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Sparkles } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { User } from "@supabase/supabase-js";
+import { postTitleSchema, postPromptSchema, imageFileSchema } from "@/lib/validation";
 
 const EditPost = () => {
   const { id } = useParams();
@@ -109,6 +110,23 @@ const EditPost = () => {
     setUploading(true);
 
     try {
+      // Validate inputs
+      const titleResult = postTitleSchema.safeParse(title);
+      if (!titleResult.success) {
+        throw new Error(titleResult.error.errors[0].message);
+      }
+
+      const promptResult = postPromptSchema.safeParse(prompt);
+      if (!promptResult.success) {
+        throw new Error(promptResult.error.errors[0].message);
+      }
+
+      if (imageFile) {
+        const imageResult = imageFileSchema.safeParse(imageFile);
+        if (!imageResult.success) {
+          throw new Error(imageResult.error.errors[0].message);
+        }
+      }
       let imageUrl = currentImageUrl;
 
       // Upload new image if selected

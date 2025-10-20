@@ -7,6 +7,7 @@ import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit, Eye } from "luc
 import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { commentSchema } from "@/lib/validation";
 
 interface Post {
   id: string;
@@ -234,6 +235,17 @@ const PostDetail = () => {
     }
 
     if (!newComment.trim()) return;
+
+    // Validate comment
+    const commentResult = commentSchema.safeParse(newComment);
+    if (!commentResult.success) {
+      toast({
+        title: "Invalid comment",
+        description: commentResult.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     const { error } = await supabase
       .from("comments")

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, Sparkles } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { User } from "@supabase/supabase-js";
+import { postTitleSchema, postPromptSchema, imageFileSchema } from "@/lib/validation";
 
 const CreatePost = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -68,6 +69,21 @@ const CreatePost = () => {
     setUploading(true);
 
     try {
+      // Validate inputs
+      const titleResult = postTitleSchema.safeParse(title);
+      if (!titleResult.success) {
+        throw new Error(titleResult.error.errors[0].message);
+      }
+
+      const promptResult = postPromptSchema.safeParse(prompt);
+      if (!promptResult.success) {
+        throw new Error(promptResult.error.errors[0].message);
+      }
+
+      const imageResult = imageFileSchema.safeParse(imageFile);
+      if (!imageResult.success) {
+        throw new Error(imageResult.error.errors[0].message);
+      }
       // Upload image to storage
       const fileExt = imageFile.name.split(".").pop();
       const fileName = `${user.id}/${Math.random()}.${fileExt}`;

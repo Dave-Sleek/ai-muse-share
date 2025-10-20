@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
+import { usernameSchema, emailSchema, passwordSchema } from "@/lib/validation";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -33,6 +34,33 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate inputs
+      if (!isForgotPassword) {
+        const emailResult = emailSchema.safeParse(email);
+        if (!emailResult.success) {
+          throw new Error(emailResult.error.errors[0].message);
+        }
+
+        if (!isForgotPassword) {
+          const passwordResult = passwordSchema.safeParse(password);
+          if (!passwordResult.success) {
+            throw new Error(passwordResult.error.errors[0].message);
+          }
+        }
+
+        if (isSignUp) {
+          const usernameResult = usernameSchema.safeParse(username);
+          if (!usernameResult.success) {
+            throw new Error(usernameResult.error.errors[0].message);
+          }
+        }
+      } else {
+        const emailResult = emailSchema.safeParse(email);
+        if (!emailResult.success) {
+          throw new Error(emailResult.error.errors[0].message);
+        }
+      }
+
       if (isForgotPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/auth?reset=true`,
