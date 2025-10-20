@@ -43,14 +43,14 @@ const Footer = () => {
             <h3 className="font-semibold mb-4">Resources</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Documentation
-                </a>
+                <Link to="/how-to-use" className="hover:text-primary transition-colors">
+                  How to Use
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Help Center
-                </a>
+                <Link to="/discover" className="hover:text-primary transition-colors">
+                  Discover
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-primary transition-colors">
@@ -64,14 +64,14 @@ const Footer = () => {
             <h3 className="font-semibold mb-4">Legal</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
+                <Link to="/privacy-policy" className="hover:text-primary transition-colors">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
-                  Terms of Service
-                </a>
+                <Link to="/terms-of-use" className="hover:text-primary transition-colors">
+                  Terms of Use
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-primary transition-colors">

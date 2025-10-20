@@ -11,6 +11,9 @@ import CreatePost from "./pages/CreatePost";
 import EditPost from "./pages/EditPost";
 import Profile from "./pages/Profile";
 import Discover from "./pages/Discover";
+import HowToUse from "./pages/HowToUse";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfUse from "./pages/TermsOfUse";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 import CookieConsent from "./components/CookieConsent";
@@ -32,6 +35,9 @@ const App = () => (
           <Route path="/edit/:id" element={<><EditPost /><Footer /><CookieConsent /></>} />
           <Route path="/profile" element={<><Profile /><Footer /><CookieConsent /></>} />
           <Route path="/discover" element={<><Discover /><Footer /><CookieConsent /></>} />
+          <Route path="/how-to-use" element={<><HowToUse /><Footer /><CookieConsent /></>} />
+          <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /><CookieConsent /></>} />
+          <Route path="/terms-of-use" element={<><TermsOfUse /><Footer /><CookieConsent /></>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
