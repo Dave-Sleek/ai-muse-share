@@ -25,6 +25,7 @@ interface Comment {
   id: string;
   content: string;
   created_at: string;
+  user_id: string;
   profiles: {
     username: string;
   };
@@ -325,7 +326,13 @@ const PostDetail = () => {
           <div className="p-6">
             <h1 className="text-3xl font-bold mb-2">{post.title}</h1>
             <p className="text-muted-foreground mb-4">
-              by {post.profiles.username}
+              by{" "}
+              <Link 
+                to={`/profile/${post.user_id}`}
+                className="hover:text-primary transition-colors hover:underline"
+              >
+                {post.profiles.username}
+              </Link>
             </p>
             <p className="text-lg mb-6">{post.prompt}</p>
 
@@ -415,12 +422,15 @@ const PostDetail = () => {
                 </p>
               )}
 
-              <div className="space-y-4">
+                <div className="space-y-4">
                 {comments.map((comment) => (
                   <div key={comment.id} className="glass-effect p-4 rounded-lg">
-                    <p className="font-medium mb-1">
+                    <Link 
+                      to={`/profile/${comment.user_id}`}
+                      className="font-medium mb-1 hover:text-primary transition-colors hover:underline block"
+                    >
                       {comment.profiles.username}
-                    </p>
+                    </Link>
                     <p className="text-sm text-muted-foreground mb-2">
                       {new Date(comment.created_at).toLocaleDateString()}
                     </p>

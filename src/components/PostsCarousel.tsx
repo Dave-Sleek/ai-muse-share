@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Carousel,
   CarouselContent,
@@ -13,6 +13,7 @@ interface Post {
   id: string;
   title: string;
   image_url: string;
+  user_id: string;
   profiles: {
     username: string;
   };
@@ -66,9 +67,13 @@ const PostsCarousel = () => {
                     <h3 className="font-semibold text-lg mb-1 truncate">
                       {post.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground">
+                    <Link
+                      to={`/profile/${post.user_id}`}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors inline-block"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       by {post.profiles.username}
-                    </p>
+                    </Link>
                   </div>
                 </div>
               </CarouselItem>

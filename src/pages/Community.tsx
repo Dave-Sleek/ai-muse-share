@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Heart, MessageCircle, Eye, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
@@ -180,7 +180,13 @@ const Community = () => {
                           {post.views_count}
                         </span>
                       </div>
-                      <span className="text-muted-foreground">@{post.profiles.username}</span>
+                      <Link 
+                        to={`/profile/${post.user_id}`}
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        @{post.profiles.username}
+                      </Link>
                     </div>
                   </CardContent>
                 </Card>

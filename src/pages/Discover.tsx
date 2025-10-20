@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UserPlus, UserCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -156,11 +156,13 @@ const Discover = () => {
           {users.map((user) => (
             <Card key={user.id} className="p-6">
               <div className="flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-2xl font-bold mb-4">
+                <Link to={`/profile/${user.id}`} className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-2xl font-bold mb-4 hover:scale-105 transition-transform">
                   {user.username.charAt(0).toUpperCase()}
-                </div>
+                </Link>
                 
-                <h3 className="text-xl font-semibold mb-2">{user.username}</h3>
+                <Link to={`/profile/${user.id}`} className="hover:text-primary transition-colors">
+                  <h3 className="text-xl font-semibold mb-2">{user.username}</h3>
+                </Link>
                 
                 <div className="flex gap-4 text-sm text-muted-foreground mb-4">
                   <span>{user.postCount} posts</span>

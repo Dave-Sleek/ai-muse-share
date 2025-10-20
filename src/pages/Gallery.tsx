@@ -13,6 +13,7 @@ interface Post {
   prompt: string;
   image_url: string;
   created_at: string;
+  user_id: string;
   profiles: {
     username: string;
   };
@@ -155,9 +156,12 @@ const Gallery = () => {
                   </p>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
+                    <Link 
+                      to={`/profile/${post.user_id}`}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
                       by {post.profiles.username}
-                    </span>
+                    </Link>
                     <div className="flex items-center gap-3">
                       <button className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
                         <Heart className="w-4 h-4" />

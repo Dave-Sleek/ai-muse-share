@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Heart, MessageCircle, Eye, Users } from "lucide-react";
+import { User, LogOut, Heart, MessageCircle, Eye, UserPlus, UserMinus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Link } from "react-router-dom";
 
@@ -24,42 +24,52 @@ interface Post {
 }
 
 const Profile = () => {
-  const [user, setUser] = useState<any>(null);
+  const { userId } = useParams();
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  const profileUserId = userId || currentUser?.id;
+  const isOwnProfile = !userId || userId === currentUser?.id;
 
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
+      setCurrentUser(session?.user || null);
+      
+      const targetUserId = userId || session?.user?.id;
+      if (targetUserId) {
+        fetchProfile(targetUserId);
+        fetchPosts(targetUserId);
+        fetchFollowCounts(targetUserId);
+        if (session?.user && userId && userId !== session.user.id) {
+          checkFollowStatus(session.user.id, userId);
+        }
       }
-      setUser(session.user);
-      fetchProfile(session.user.id);
-      fetchPosts(session.user.id);
-      fetchFollowCounts(session.user.id);
     };
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/auth");
-      } else {
-        setUser(session.user);
-        fetchProfile(session.user.id);
-        fetchPosts(session.user.id);
-        fetchFollowCounts(session.user.id);
+      setCurrentUser(session?.user || null);
+      const targetUserId = userId || session?.user?.id;
+      if (targetUserId) {
+        fetchProfile(targetUserId);
+        fetchPosts(targetUserId);
+        fetchFollowCounts(targetUserId);
+        if (session?.user && userId && userId !== session.user.id) {
+          checkFollowStatus(session.user.id, userId);
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, userId]);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -117,6 +127,62 @@ const Profile = () => {
     }
   };
 
+  const checkFollowStatus = async (currentUserId: string, targetUserId: string) => {
+    try {
+      const { data } = await supabase
+        .from("follows")
+        .select("*")
+        .eq("follower_id", currentUserId)
+        .eq("following_id", targetUserId)
+        .single();
+      
+      setIsFollowing(!!data);
+    } catch (error) {
+      setIsFollowing(false);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!currentUser || !profileUserId) {
+      navigate("/auth");
+      return;
+    }
+
+    try {
+      if (isFollowing) {
+        await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", currentUser.id)
+          .eq("following_id", profileUserId);
+        
+        toast({
+          title: "Unfollowed",
+          description: `You unfollowed ${profile?.username}`,
+        });
+      } else {
+        await supabase
+          .from("follows")
+          .insert({ follower_id: currentUser.id, following_id: profileUserId });
+        
+        toast({
+          title: "Following",
+          description: `You are now following ${profile?.username}`,
+        });
+      }
+      
+      setIsFollowing(!isFollowing);
+      fetchFollowCounts(profileUserId);
+    } catch (error) {
+      console.error("Error toggling follow:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update follow status",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast({
@@ -149,7 +215,7 @@ const Profile = () => {
     }
   };
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -170,7 +236,9 @@ const Profile = () => {
               </div>
               <div className="flex-1 text-center sm:text-left">
                 <h1 className="text-3xl font-bold mb-2">{profile?.username}</h1>
-                <p className="text-muted-foreground mb-4">{user.email}</p>
+                {isOwnProfile && currentUser && (
+                  <p className="text-muted-foreground mb-4">{currentUser.email}</p>
+                )}
                 <div className="flex gap-6 justify-center sm:justify-start">
                   <div>
                     <span className="text-2xl font-bold gradient-text">{posts.length}</span>
@@ -199,23 +267,48 @@ const Profile = () => {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </Button>
-                <Button variant="destructive" onClick={handleDeleteAccount}>
-                  Delete Account
-                </Button>
+                {isOwnProfile ? (
+                  <>
+                    <Button variant="outline" onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </Button>
+                    <Button variant="destructive" onClick={handleDeleteAccount}>
+                      Delete Account
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    variant={isFollowing ? "outline" : "hero"}
+                    onClick={handleFollow}
+                  >
+                    {isFollowing ? (
+                      <>
+                        <UserMinus className="w-4 h-4 mr-2" />
+                        Unfollow
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Follow
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
 
           {/* Posts Grid */}
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Your Posts</h2>
-            <Link to="/create">
-              <Button variant="hero">Create New Post</Button>
-            </Link>
+            <h2 className="text-2xl font-bold">
+              {isOwnProfile ? "Your Posts" : `${profile?.username}'s Posts`}
+            </h2>
+            {isOwnProfile && (
+              <Link to="/create">
+                <Button variant="hero">Create New Post</Button>
+              </Link>
+            )}
           </div>
 
           {posts.length > 0 ? (
@@ -267,13 +360,17 @@ const Profile = () => {
           ) : (
             <div className="glass-effect rounded-2xl p-12 text-center">
               <p className="text-xl text-muted-foreground mb-6">
-                You haven't created any posts yet
+                {isOwnProfile 
+                  ? "You haven't created any posts yet" 
+                  : `${profile?.username} hasn't created any posts yet`}
               </p>
-              <Link to="/create">
-                <Button variant="hero" size="lg">
-                  Create Your First Post
-                </Button>
-              </Link>
+              {isOwnProfile && (
+                <Link to="/create">
+                  <Button variant="hero" size="lg">
+                    Create Your First Post
+                  </Button>
+                </Link>
+              )}
             </div>
           )}
         </div>

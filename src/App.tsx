@@ -35,6 +35,7 @@ const App = () => (
           <Route path="/create" element={<><CreatePost /><Footer /><CookieConsent /></>} />
           <Route path="/edit/:id" element={<><EditPost /><Footer /><CookieConsent /></>} />
           <Route path="/profile" element={<><Profile /><Footer /><CookieConsent /></>} />
+          <Route path="/profile/:userId" element={<><Profile /><Footer /><CookieConsent /></>} />
           <Route path="/discover" element={<><Discover /><Footer /><CookieConsent /></>} />
           <Route path="/community" element={<><Community /><Footer /><CookieConsent /></>} />
           <Route path="/how-to-use" element={<><HowToUse /><Footer /><CookieConsent /></>} />
