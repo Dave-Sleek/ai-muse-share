@@ -3,13 +3,18 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Heart, MessageCircle, Eye, UserPlus, UserMinus } from "lucide-react";
+import { User, LogOut, Heart, MessageCircle, Eye, UserPlus, UserMinus, MapPin, Edit2, Globe, Twitter, Linkedin, Instagram } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Link } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ProfileEditForm } from "@/components/ProfileEditForm";
 
 interface UserProfile {
   username: string;
   avatar_url: string | null;
+  bio: string | null;
+  location: string | null;
+  social_links: any;
 }
 
 interface Post {
@@ -32,6 +37,7 @@ const Profile = () => {
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -75,7 +81,7 @@ const Profile = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("username, avatar_url")
+        .select("username, avatar_url, bio, location, social_links")
         .eq("id", userId)
         .single();
 
@@ -236,9 +242,43 @@ const Profile = () => {
               </div>
               <div className="flex-1 text-center sm:text-left">
                 <h1 className="text-3xl font-bold mb-2">{profile?.username}</h1>
-                {isOwnProfile && currentUser && (
-                  <p className="text-muted-foreground mb-4">{currentUser.email}</p>
+                
+                {profile?.bio && (
+                  <p className="text-muted-foreground mb-3 max-w-2xl">{profile.bio}</p>
                 )}
+                
+                {profile?.location && (
+                  <div className="flex items-center gap-2 text-muted-foreground mb-3 justify-center sm:justify-start">
+                    <MapPin className="w-4 h-4" />
+                    <span>{profile.location}</span>
+                  </div>
+                )}
+
+                {profile?.social_links && Object.keys(profile.social_links).length > 0 && (
+                  <div className="flex items-center gap-3 mb-4 justify-center sm:justify-start">
+                    {profile.social_links.twitter && (
+                      <a href={profile.social_links.twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                        <Twitter className="w-5 h-5" />
+                      </a>
+                    )}
+                    {profile.social_links.instagram && (
+                      <a href={profile.social_links.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                        <Instagram className="w-5 h-5" />
+                      </a>
+                    )}
+                    {profile.social_links.linkedin && (
+                      <a href={profile.social_links.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                        <Linkedin className="w-5 h-5" />
+                      </a>
+                    )}
+                    {profile.social_links.website && (
+                      <a href={profile.social_links.website} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                        <Globe className="w-5 h-5" />
+                      </a>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex gap-6 justify-center sm:justify-start">
                   <div>
                     <span className="text-2xl font-bold gradient-text">{posts.length}</span>
@@ -269,6 +309,30 @@ const Profile = () => {
               <div className="flex gap-2">
                 {isOwnProfile ? (
                   <>
+                    <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline">
+                          <Edit2 className="w-4 h-4 mr-2" />
+                          Edit Profile
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Edit Profile</DialogTitle>
+                        </DialogHeader>
+                        {profile && (
+                          <ProfileEditForm
+                            currentProfile={profile}
+                            userId={currentUser.id}
+                            onSuccess={() => {
+                              setEditDialogOpen(false);
+                              fetchProfile(currentUser.id);
+                            }}
+                          />
+                        )}
+                      </DialogContent>
+                    </Dialog>
+                    
                     <Button variant="outline" onClick={handleSignOut}>
                       <LogOut className="w-4 h-4" />
                       Sign Out

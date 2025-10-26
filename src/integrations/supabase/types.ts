@@ -216,22 +216,31 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           id: string
+          location: string | null
+          social_links: Json | null
           updated_at: string
           username: string
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           id: string
+          location?: string | null
+          social_links?: Json | null
           updated_at?: string
           username: string
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           id?: string
+          location?: string | null
+          social_links?: Json | null
           updated_at?: string
           username?: string
         }

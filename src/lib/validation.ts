@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 // Username validation: alphanumeric, underscore, 3-30 characters
 export const usernameSchema = z.string()
@@ -77,3 +78,20 @@ export const editPostSchema = z.object({
 export const createCommentSchema = z.object({
   content: commentSchema,
 });
+
+// Helper function to check if username is available
+export const validateUsername = async (username: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("username", username)
+      .maybeSingle();
+
+    if (error) throw error;
+    return !data; // Returns true if username is available (no data found)
+  } catch (error) {
+    console.error("Error validating username:", error);
+    return false;
+  }
+};
