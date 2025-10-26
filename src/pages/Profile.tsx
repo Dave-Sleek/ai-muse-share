@@ -230,147 +230,193 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/95">
       <Navbar />
-      <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Profile Header */}
-          <div className="glass-effect rounded-2xl p-8 mb-8">
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
-                <User className="w-12 h-12 text-white" />
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                <h1 className="text-3xl font-bold mb-2">{profile?.username}</h1>
-                
-                {profile?.bio && (
-                  <p className="text-muted-foreground mb-3 max-w-2xl">{profile.bio}</p>
-                )}
-                
-                {profile?.location && (
-                  <div className="flex items-center gap-2 text-muted-foreground mb-3 justify-center sm:justify-start">
-                    <MapPin className="w-4 h-4" />
-                    <span>{profile.location}</span>
-                  </div>
-                )}
-
-                {profile?.social_links && Object.keys(profile.social_links).length > 0 && (
-                  <div className="flex items-center gap-3 mb-4 justify-center sm:justify-start">
-                    {profile.social_links.twitter && (
-                      <a href={profile.social_links.twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                        <Twitter className="w-5 h-5" />
-                      </a>
-                    )}
-                    {profile.social_links.instagram && (
-                      <a href={profile.social_links.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                        <Instagram className="w-5 h-5" />
-                      </a>
-                    )}
-                    {profile.social_links.linkedin && (
-                      <a href={profile.social_links.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                        <Linkedin className="w-5 h-5" />
-                      </a>
-                    )}
-                    {profile.social_links.website && (
-                      <a href={profile.social_links.website} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                        <Globe className="w-5 h-5" />
-                      </a>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex gap-6 justify-center sm:justify-start">
-                  <div>
-                    <span className="text-2xl font-bold gradient-text">{posts.length}</span>
-                    <p className="text-sm text-muted-foreground">Posts</p>
-                  </div>
-                  <div>
-                    <span className="text-2xl font-bold gradient-text">
-                      {posts.reduce((sum, post) => sum + post.likes.length, 0)}
-                    </span>
-                    <p className="text-sm text-muted-foreground">Likes</p>
-                  </div>
-                  <div>
-                    <span className="text-2xl font-bold gradient-text">
-                      {posts.reduce((sum, post) => sum + post.post_views.length, 0)}
-                    </span>
-                    <p className="text-sm text-muted-foreground">Views</p>
-                  </div>
-                  <div>
-                    <span className="text-2xl font-bold gradient-text">{followerCount}</span>
-                    <p className="text-sm text-muted-foreground">Followers</p>
-                  </div>
-                  <div>
-                    <span className="text-2xl font-bold gradient-text">{followingCount}</span>
-                    <p className="text-sm text-muted-foreground">Following</p>
-                  </div>
+      <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Profile Header Card */}
+          <div className="glass-effect rounded-3xl p-8 sm:p-10 mb-8 border border-border/40 animate-fade-in">
+            {/* Avatar and Actions Row */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-6">
+              {/* Avatar */}
+              <div className="relative group">
+                <div className="w-32 h-32 bg-gradient-to-br from-primary via-secondary to-accent rounded-full flex items-center justify-center ring-4 ring-background shadow-xl">
+                  <User className="w-16 h-16 text-white" />
                 </div>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-xl opacity-50 group-hover:opacity-75 transition-opacity -z-10" />
               </div>
-              <div className="flex gap-2">
-                {isOwnProfile ? (
-                  <>
-                    <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline">
-                          <Edit2 className="w-4 h-4 mr-2" />
-                          Edit Profile
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle>Edit Profile</DialogTitle>
-                        </DialogHeader>
-                        {profile && (
-                          <ProfileEditForm
-                            currentProfile={profile}
-                            userId={currentUser.id}
-                            onSuccess={() => {
-                              setEditDialogOpen(false);
-                              fetchProfile(currentUser.id);
-                            }}
-                          />
-                        )}
-                      </DialogContent>
-                    </Dialog>
-                    
-                    <Button variant="outline" onClick={handleSignOut}>
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </Button>
-                    <Button variant="destructive" onClick={handleDeleteAccount}>
-                      Delete Account
-                    </Button>
-                  </>
-                ) : (
-                  <Button 
-                    variant={isFollowing ? "outline" : "hero"}
-                    onClick={handleFollow}
-                  >
-                    {isFollowing ? (
+
+              {/* Username and Actions */}
+              <div className="flex-1 text-center sm:text-left min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                  <h1 className="text-4xl font-bold gradient-text">{profile?.username}</h1>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 justify-center sm:justify-start flex-wrap">
+                    {isOwnProfile ? (
                       <>
-                        <UserMinus className="w-4 h-4 mr-2" />
-                        Unfollow
+                        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-2">
+                              <Edit2 className="w-4 h-4" />
+                              Edit
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Edit Profile</DialogTitle>
+                            </DialogHeader>
+                            {profile && (
+                              <ProfileEditForm
+                                currentProfile={profile}
+                                userId={currentUser.id}
+                                onSuccess={() => {
+                                  setEditDialogOpen(false);
+                                  fetchProfile(currentUser.id);
+                                }}
+                              />
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                        
+                        <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-2">
+                          <LogOut className="w-4 h-4" />
+                          Sign Out
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={handleDeleteAccount}>
+                          Delete
+                        </Button>
                       </>
                     ) : (
-                      <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Follow
-                      </>
+                      <Button 
+                        variant={isFollowing ? "outline" : "default"}
+                        size="sm"
+                        onClick={handleFollow}
+                        className="gap-2"
+                      >
+                        {isFollowing ? (
+                          <>
+                            <UserMinus className="w-4 h-4" />
+                            Unfollow
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="w-4 h-4" />
+                            Follow
+                          </>
+                        )}
+                      </Button>
                     )}
-                  </Button>
+                  </div>
+                </div>
+
+                {/* Bio */}
+                {profile?.bio && (
+                  <p className="text-muted-foreground text-lg mb-4 leading-relaxed max-w-2xl">
+                    {profile.bio}
+                  </p>
                 )}
+
+                {/* Location and Social Links */}
+                <div className="flex flex-wrap items-center gap-4 mb-6 justify-center sm:justify-start">
+                  {profile?.location && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <MapPin className="w-4 h-4" />
+                      <span className="text-sm">{profile.location}</span>
+                    </div>
+                  )}
+
+                  {profile?.social_links && Object.keys(profile.social_links).length > 0 && (
+                    <div className="flex items-center gap-2 pl-4 border-l border-border">
+                      {profile.social_links.twitter && (
+                        <a 
+                          href={profile.social_links.twitter} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="w-9 h-9 rounded-full bg-muted hover:bg-primary/10 flex items-center justify-center transition-all hover:scale-110"
+                          title="Twitter/X"
+                        >
+                          <Twitter className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                        </a>
+                      )}
+                      {profile.social_links.instagram && (
+                        <a 
+                          href={profile.social_links.instagram} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="w-9 h-9 rounded-full bg-muted hover:bg-primary/10 flex items-center justify-center transition-all hover:scale-110"
+                          title="Instagram"
+                        >
+                          <Instagram className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                        </a>
+                      )}
+                      {profile.social_links.linkedin && (
+                        <a 
+                          href={profile.social_links.linkedin} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="w-9 h-9 rounded-full bg-muted hover:bg-primary/10 flex items-center justify-center transition-all hover:scale-110"
+                          title="LinkedIn"
+                        >
+                          <Linkedin className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                        </a>
+                      )}
+                      {profile.social_links.website && (
+                        <a 
+                          href={profile.social_links.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="w-9 h-9 rounded-full bg-muted hover:bg-primary/10 flex items-center justify-center transition-all hover:scale-110"
+                          title="Website"
+                        >
+                          <Globe className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 sm:gap-6">
+                  <div className="glass-effect rounded-xl p-4 text-center hover-lift">
+                    <div className="text-3xl font-bold gradient-text mb-1">{posts.length}</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Posts</div>
+                  </div>
+                  <div className="glass-effect rounded-xl p-4 text-center hover-lift">
+                    <div className="text-3xl font-bold gradient-text mb-1">
+                      {posts.reduce((sum, post) => sum + post.likes.length, 0)}
+                    </div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Likes</div>
+                  </div>
+                  <div className="glass-effect rounded-xl p-4 text-center hover-lift">
+                    <div className="text-3xl font-bold gradient-text mb-1">
+                      {posts.reduce((sum, post) => sum + post.post_views.length, 0)}
+                    </div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Views</div>
+                  </div>
+                  <div className="glass-effect rounded-xl p-4 text-center hover-lift">
+                    <div className="text-3xl font-bold gradient-text mb-1">{followerCount}</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Followers</div>
+                  </div>
+                  <div className="glass-effect rounded-xl p-4 text-center hover-lift">
+                    <div className="text-3xl font-bold gradient-text mb-1">{followingCount}</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Following</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Posts Grid */}
-          <div className="mb-6 flex items-center justify-between">
+          {/* Posts Section Header */}
+          <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">
               {isOwnProfile ? "Your Posts" : `${profile?.username}'s Posts`}
             </h2>
             {isOwnProfile && (
               <Link to="/create">
-                <Button variant="hero">Create New Post</Button>
+                <Button variant="default" className="gap-2">
+                  Create New Post
+                </Button>
               </Link>
             )}
           </div>
@@ -378,59 +424,64 @@ const Profile = () => {
           {posts.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post, index) => (
-                <div
+                <Link 
                   key={post.id}
-                  className="glass-effect rounded-2xl overflow-hidden hover-lift group"
-                  style={{ animationDelay: `${index * 0.05}s` }}
+                  to={`/post/${post.id}`}
+                  className="group"
                 >
-                  <Link to={`/post/${post.id}`}>
-                    <div className="aspect-square overflow-hidden bg-muted">
+                  <div
+                    className="glass-effect rounded-2xl overflow-hidden hover-lift border border-border/40 transition-all duration-300"
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <div className="aspect-square overflow-hidden bg-muted relative">
                       <img
                         src={post.image_url}
                         alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
-                  </Link>
 
-                  <div className="p-4">
-                    <Link to={`/post/${post.id}`}>
-                      <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors">
+                    <div className="p-5">
+                      <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-1">
                         {post.title}
                       </h3>
-                    </Link>
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                      {post.prompt}
-                    </p>
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
+                        {post.prompt}
+                      </p>
 
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Heart className="w-4 h-4" />
-                        <span className="text-sm">{post.likes.length}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <MessageCircle className="w-4 h-4" />
-                        <span className="text-sm">{post.comments.length}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Eye className="w-4 h-4" />
-                        <span className="text-sm">{post.post_views.length}</span>
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <Heart className="w-4 h-4" />
+                          <span>{post.likes.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <MessageCircle className="w-4 h-4" />
+                          <span>{post.comments.length}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <Eye className="w-4 h-4" />
+                          <span>{post.post_views.length}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
-            <div className="glass-effect rounded-2xl p-12 text-center">
-              <p className="text-xl text-muted-foreground mb-6">
+            <div className="glass-effect rounded-3xl p-16 text-center border border-border/40 animate-fade-in">
+              <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <User className="w-10 h-10 text-muted-foreground" />
+              </div>
+              <p className="text-xl text-muted-foreground mb-6 max-w-md mx-auto">
                 {isOwnProfile 
-                  ? "You haven't created any posts yet" 
-                  : `${profile?.username} hasn't created any posts yet`}
+                  ? "You haven't created any posts yet. Start sharing your creativity!" 
+                  : `${profile?.username} hasn't shared any posts yet.`}
               </p>
               {isOwnProfile && (
                 <Link to="/create">
-                  <Button variant="hero" size="lg">
+                  <Button variant="default" size="lg" className="gap-2">
                     Create Your First Post
                   </Button>
                 </Link>
