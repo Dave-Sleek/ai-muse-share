@@ -3,11 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Heart, MessageCircle, Eye, UserPlus, UserMinus, MapPin, Edit2, Globe, Twitter, Linkedin, Instagram } from "lucide-react";
+import { User, LogOut, Heart, MessageCircle, Eye, UserPlus, UserMinus, MapPin, Edit2, Globe, Twitter, Linkedin, Instagram, KeyRound } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ProfileEditForm } from "@/components/ProfileEditForm";
+import { PasswordChangeForm } from "@/components/PasswordChangeForm";
 
 interface UserProfile {
   username: string;
@@ -38,6 +39,7 @@ const Profile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -276,6 +278,21 @@ const Profile = () => {
                                 }}
                               />
                             )}
+                          </DialogContent>
+                        </Dialog>
+                        
+                        <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-2">
+                              <KeyRound className="w-4 h-4" />
+                              Password
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Change Password</DialogTitle>
+                            </DialogHeader>
+                            <PasswordChangeForm onSuccess={() => setPasswordDialogOpen(false)} />
                           </DialogContent>
                         </Dialog>
                         

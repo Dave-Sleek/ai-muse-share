@@ -6,7 +6,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { Heart, MessageCircle, Eye, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 interface Post {
   id: string;
@@ -195,7 +194,6 @@ const Community = () => {
           )}
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

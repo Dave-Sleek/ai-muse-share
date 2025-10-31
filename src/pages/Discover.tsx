@@ -6,7 +6,6 @@ import { UserPlus, UserCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 interface UserProfile {
   id: string;
@@ -197,7 +196,6 @@ const Discover = () => {
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 };
