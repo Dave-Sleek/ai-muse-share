@@ -52,9 +52,9 @@ const Hero = () => {
           <span className="text-sm text-muted-foreground">Discover AI-Generated Masterpieces</span>
         </div>
 
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 text-foreground animate-fade-in" style={{ animationDelay: "0.1s" }}>
           Share Your{" "}
-          <span className="gradient-text">AI Art</span>
+          <span className="gradient-text inline-block">AI Art</span>
           <br />
           With the World
         </h1>
@@ -81,19 +81,19 @@ const Hero = () => {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-8 mt-20 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
           <div className="glass-effect p-6 rounded-2xl">
-            <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
+            <div className="text-3xl md:text-4xl font-bold gradient-text inline-block mb-2">
               {stats.posts.toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground">AI Images</div>
           </div>
           <div className="glass-effect p-6 rounded-2xl">
-            <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
+            <div className="text-3xl md:text-4xl font-bold gradient-text inline-block mb-2">
               {stats.users.toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground">Creators</div>
           </div>
           <div className="glass-effect p-6 rounded-2xl">
-            <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
+            <div className="text-3xl md:text-4xl font-bold gradient-text inline-block mb-2">
               {stats.likes.toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground">Likes</div>
