@@ -36,14 +36,14 @@ const Hero = () => {
         <img 
           src={heroBg} 
           alt="Hero background" 
-          className="w-full h-full object-cover opacity-30"
+          className="w-full h-full object-cover opacity-20"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/70 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/90 to-background" />
       </div>
 
       {/* Floating gradient orbs */}
-      <div className="absolute top-20 left-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-20 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      <div className="absolute top-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-20 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
 
       {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
