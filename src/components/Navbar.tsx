@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Notifications from "./Notifications";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -61,6 +62,7 @@ const Navbar = () => {
                 </Button>
               </Link>
             )}
+            <ThemeToggle />
           </div>
 
           {/* Mobile menu button */}
@@ -123,6 +125,9 @@ const Navbar = () => {
                 </Button>
               </Link>
             )}
+            <div className="py-2 flex justify-start">
+              <ThemeToggle />
+            </div>
           </div>
         )}
       </div>
