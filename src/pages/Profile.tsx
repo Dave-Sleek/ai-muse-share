@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut, Heart, MessageCircle, Eye, UserPlus, UserMinus, MapPin, Edit2, Globe, Twitter, Linkedin, Instagram, KeyRound } from "lucide-react";
+import { User, LogOut, Heart, MessageCircle, Eye, UserPlus, UserMinus, MapPin, Edit2, Globe, Twitter, Linkedin, Instagram, KeyRound, Share2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -223,6 +223,36 @@ const Profile = () => {
     }
   };
 
+  const handleShareProfile = async () => {
+    const profileUrl = `${window.location.origin}/profile/${profileUserId}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${profile?.username}'s Profile`,
+          text: `Check out ${profile?.username}'s AI art on PromptShare!`,
+          url: profileUrl,
+        });
+      } catch (error) {
+        // User cancelled share
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(profileUrl);
+        toast({
+          title: "Link copied!",
+          description: "Profile link copied to clipboard",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to copy link",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -255,6 +285,16 @@ const Profile = () => {
                   
                   {/* Action Buttons */}
                   <div className="flex gap-2 justify-center sm:justify-start flex-wrap">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleShareProfile}
+                      className="gap-2"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Share
+                    </Button>
+                    
                     {isOwnProfile ? (
                       <>
                         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
