@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
+{/* <img src="/assets/hero-bg.jpg" alt="Hero background" /> */ }
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -33,9 +34,9 @@ const Hero = () => {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 z-0">
-        <img 
-          src={heroBg} 
-          alt="Hero background" 
+        <img
+          src={heroBg}
+          alt="Hero background"
           className="w-full h-full object-cover opacity-20"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/90 to-background" />

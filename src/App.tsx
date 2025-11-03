@@ -30,23 +30,23 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/gallery" element={<><Gallery /><Footer /><CookieConsent /></>} />
-          <Route path="/auth" element={<><Auth /><Footer /><CookieConsent /></>} />
-          <Route path="/post/:id" element={<><PostDetail /><Footer /><CookieConsent /></>} />
-          <Route path="/create" element={<><CreatePost /><Footer /><CookieConsent /></>} />
-          <Route path="/edit/:id" element={<><EditPost /><Footer /><CookieConsent /></>} />
-          <Route path="/profile" element={<><Profile /><Footer /><CookieConsent /></>} />
-          <Route path="/profile/:userId" element={<><Profile /><Footer /><CookieConsent /></>} />
-          <Route path="/discover" element={<><Discover /><Footer /><CookieConsent /></>} />
-          <Route path="/community" element={<><Community /><Footer /><CookieConsent /></>} />
-          <Route path="/how-to-use" element={<><HowToUse /><Footer /><CookieConsent /></>} />
-          <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /><CookieConsent /></>} />
-          <Route path="/terms-of-use" element={<><TermsOfUse /><Footer /><CookieConsent /></>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="/" element={<Index />} />
+            <Route path="/gallery" element={<><Gallery /><Footer /><CookieConsent /></>} />
+            <Route path="/auth" element={<><Auth /><Footer /><CookieConsent /></>} />
+            <Route path="/post/:id" element={<><PostDetail /><Footer /><CookieConsent /></>} />
+            <Route path="/create" element={<><CreatePost /><Footer /><CookieConsent /></>} />
+            <Route path="/edit/:id" element={<><EditPost /><Footer /><CookieConsent /></>} />
+            <Route path="/profile" element={<><Profile /><Footer /><CookieConsent /></>} />
+            <Route path="/profile/:userId" element={<><Profile /><Footer /><CookieConsent /></>} />
+            <Route path="/discover" element={<><Discover /><Footer /><CookieConsent /></>} />
+            <Route path="/community" element={<><Community /><Footer /><CookieConsent /></>} />
+            <Route path="/how-to-use" element={<><HowToUse /><Footer /><CookieConsent /></>} />
+            <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /><CookieConsent /></>} />
+            <Route path="/terms-of-use" element={<><TermsOfUse /><Footer /><CookieConsent /></>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>

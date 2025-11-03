@@ -133,7 +133,7 @@ const EditPost = () => {
       if (imageFile) {
         const fileExt = imageFile.name.split(".").pop();
         const fileName = `${user.id}/${Math.random()}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from("post-images")
           .upload(fileName, imageFile);
@@ -163,7 +163,7 @@ const EditPost = () => {
         title: "Success!",
         description: "Your post has been updated",
       });
-      
+
       navigate(`/post/${id}`);
     } catch (error: any) {
       console.error("Error updating post:", error);
