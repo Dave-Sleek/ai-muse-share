@@ -31,7 +31,7 @@ const Navbar = () => {
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold gradient-text inline-block">PromptShare</span>
+            <span className="text-xl font-bold gradient-text">PromptShare</span>
           </Link>
 
           {/* Desktop Navigation */}

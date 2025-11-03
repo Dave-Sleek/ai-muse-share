@@ -92,11 +92,13 @@ All colors MUST be HSL.
 
 @layer utilities {
   .gradient-text {
-    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+    display: inline-block;
+    background: linear-gradient(90deg, hsl(266 100% 65%) 0%, hsl(190 100% 50%) 100%);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-fill-color: transparent;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    font-weight: 700;
   }
   
   .gradient-border {
