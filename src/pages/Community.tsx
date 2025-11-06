@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate, Link } from "react-router-dom";
 import { Heart, MessageCircle, Eye, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -26,14 +27,23 @@ interface Post {
 
 const Community = () => {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [followingPosts, setFollowingPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [followingLoading, setFollowingLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<"all" | "following">("all");
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "following" && currentUser) {
+      fetchFollowingPosts();
+    }
+  }, [activeTab, currentUser]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -88,6 +98,72 @@ const Community = () => {
     }
   };
 
+  const fetchFollowingPosts = async () => {
+    if (!currentUser) return;
+    
+    setFollowingLoading(true);
+    try {
+      // Get list of users the current user follows
+      const { data: followsData, error: followsError } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", currentUser.id);
+
+      if (followsError) throw followsError;
+
+      const followingIds = followsData?.map(f => f.following_id) || [];
+
+      if (followingIds.length === 0) {
+        setFollowingPosts([]);
+        setFollowingLoading(false);
+        return;
+      }
+
+      // Fetch posts from followed users
+      const { data: postsData, error: postsError } = await supabase
+        .from("posts")
+        .select(`
+          *,
+          profiles:user_id (username, avatar_url)
+        `)
+        .in("user_id", followingIds)
+        .order("created_at", { ascending: false });
+
+      if (postsError) throw postsError;
+
+      // Fetch likes, comments, and views counts for each post
+      const postsWithCounts = await Promise.all(
+        (postsData || []).map(async (post) => {
+          const [likesResult, commentsResult, viewsResult, userLikeResult] = await Promise.all([
+            supabase.from("likes").select("*", { count: "exact", head: true }).eq("post_id", post.id),
+            supabase.from("comments").select("*", { count: "exact", head: true }).eq("post_id", post.id),
+            supabase.from("post_views").select("*", { count: "exact", head: true }).eq("post_id", post.id),
+            supabase.from("likes").select("*").eq("post_id", post.id).eq("user_id", currentUser.id).single(),
+          ]);
+
+          return {
+            ...post,
+            likes_count: likesResult.count || 0,
+            comments_count: commentsResult.count || 0,
+            views_count: viewsResult.count || 0,
+            user_has_liked: !!userLikeResult?.data,
+          };
+        })
+      );
+
+      setFollowingPosts(postsWithCounts);
+    } catch (error) {
+      console.error("Error fetching following posts:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load posts from people you follow",
+        variant: "destructive",
+      });
+    } finally {
+      setFollowingLoading(false);
+    }
+  };
+
   const handleLike = async (postId: string, currentlyLiked: boolean) => {
     if (!currentUser) {
       navigate("/auth");
@@ -100,7 +176,11 @@ const Community = () => {
       } else {
         await supabase.from("likes").insert({ post_id: postId, user_id: currentUser.id });
       }
+      // Refresh both feeds
       fetchPosts();
+      if (activeTab === "following") {
+        fetchFollowingPosts();
+      }
     } catch (error) {
       console.error("Error toggling like:", error);
       toast({
@@ -109,6 +189,93 @@ const Community = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const renderPosts = (postsToRender: Post[], isLoading: boolean) => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      );
+    }
+
+    if (postsToRender.length === 0) {
+      return (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <p className="text-muted-foreground mb-4">
+              {activeTab === "following" 
+                ? "No posts from people you follow yet. Start following creators in the Discover page!"
+                : "No posts yet"}
+            </p>
+            {activeTab === "all" && (
+              <Button onClick={() => navigate("/create")}>Create First Post</Button>
+            )}
+            {activeTab === "following" && (
+              <Button onClick={() => navigate("/discover")}>Discover Creators</Button>
+            )}
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {postsToRender.map((post) => (
+          <Card
+            key={post.id}
+            className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
+            onClick={() => navigate(`/post/${post.id}`)}
+          >
+            <div className="aspect-square overflow-hidden">
+              <img
+                src={post.image_url}
+                alt={post.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-lg mb-2 line-clamp-1">{post.title}</h3>
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{post.prompt}</p>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 h-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLike(post.id, post.user_has_liked);
+                    }}
+                  >
+                    <Heart
+                      className={`h-4 w-4 ${post.user_has_liked ? "fill-red-500 text-red-500" : ""}`}
+                    />
+                    {post.likes_count}
+                  </Button>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <MessageCircle className="h-4 w-4" />
+                    {post.comments_count}
+                  </span>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Eye className="h-4 w-4" />
+                    {post.views_count}
+                  </span>
+                </div>
+                <Link 
+                  to={`/profile/${post.user_id}`}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  @{post.profiles.username}
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
   };
 
   if (loading) {
@@ -129,69 +296,20 @@ const Community = () => {
             Explore what the community is creating with AI
           </p>
 
-          {posts.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-muted-foreground mb-4">No posts yet</p>
-                <Button onClick={() => navigate("/create")}>Create First Post</Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {posts.map((post) => (
-                <Card
-                  key={post.id}
-                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
-                  onClick={() => navigate(`/post/${post.id}`)}
-                >
-                  <div className="aspect-square overflow-hidden">
-                    <img
-                      src={post.image_url}
-                      alt={post.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-1">{post.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{post.prompt}</p>
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="gap-2 h-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLike(post.id, post.user_has_liked);
-                          }}
-                        >
-                          <Heart
-                            className={`h-4 w-4 ${post.user_has_liked ? "fill-red-500 text-red-500" : ""}`}
-                          />
-                          {post.likes_count}
-                        </Button>
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <MessageCircle className="h-4 w-4" />
-                          {post.comments_count}
-                        </span>
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <Eye className="h-4 w-4" />
-                          {post.views_count}
-                        </span>
-                      </div>
-                      <Link 
-                        to={`/profile/${post.user_id}`}
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        @{post.profiles.username}
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "all" | "following")} className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-2 mb-8">
+              <TabsTrigger value="all">All Posts</TabsTrigger>
+              <TabsTrigger value="following">Following</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="mt-0">
+              {renderPosts(posts, loading)}
+            </TabsContent>
+            
+            <TabsContent value="following" className="mt-0">
+              {renderPosts(followingPosts, followingLoading)}
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>
