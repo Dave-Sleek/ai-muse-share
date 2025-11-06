@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit, Eye } from "lucide-react";
+import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit, Eye, Reply } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -26,9 +26,13 @@ interface Comment {
   content: string;
   created_at: string;
   user_id: string;
+  parent_comment_id: string | null;
   profiles: {
     username: string;
   };
+  likeCount?: number;
+  isLiked?: boolean;
+  replies?: Comment[];
 }
 
 const PostDetail = () => {
@@ -42,6 +46,8 @@ const PostDetail = () => {
   const [viewCount, setViewCount] = useState(0);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
 
   useEffect(() => {
     fetchPost();
@@ -147,6 +153,7 @@ const PostDetail = () => {
       .from("comments")
       .select("*")
       .eq("post_id", id)
+      .is("parent_comment_id", null)
       .order("created_at", { ascending: false });
 
     if (!error && commentsData) {
@@ -158,14 +165,69 @@ const PostDetail = () => {
             .eq("id", comment.user_id)
             .single();
 
+          // Fetch replies
+          const { data: repliesData } = await supabase
+            .from("comments")
+            .select("*")
+            .eq("parent_comment_id", comment.id)
+            .order("created_at", { ascending: true });
+
+          const enrichedReplies = repliesData ? await Promise.all(
+            repliesData.map(async (reply) => {
+              const { data: replyProfile } = await supabase
+                .from("profiles")
+                .select("username")
+                .eq("id", reply.user_id)
+                .single();
+
+              const likeCount = await fetchCommentLikeCount(reply.id);
+              const isLiked = await checkIfCommentLiked(reply.id);
+
+              return {
+                ...reply,
+                profiles: replyProfile || { username: "Unknown" },
+                likeCount,
+                isLiked,
+              };
+            })
+          ) : [];
+
+          const likeCount = await fetchCommentLikeCount(comment.id);
+          const isLiked = await checkIfCommentLiked(comment.id);
+
           return {
             ...comment,
             profiles: profile || { username: "Unknown" },
+            replies: enrichedReplies,
+            likeCount,
+            isLiked,
           };
         })
       );
       setComments(enrichedComments);
     }
+  };
+
+  const fetchCommentLikeCount = async (commentId: string) => {
+    const { count } = await supabase
+      .from("comment_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("comment_id", commentId);
+    return count || 0;
+  };
+
+  const checkIfCommentLiked = async (commentId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { data } = await supabase
+      .from("comment_likes")
+      .select("id")
+      .eq("comment_id", commentId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    return !!data;
   };
 
   const checkIfLiked = async () => {
@@ -237,7 +299,6 @@ const PostDetail = () => {
 
     if (!newComment.trim()) return;
 
-    // Validate comment
     const commentResult = commentSchema.safeParse(newComment);
     if (!commentResult.success) {
       toast({
@@ -264,6 +325,84 @@ const PostDetail = () => {
         title: "Success",
         description: "Comment posted successfully",
       });
+    }
+  };
+
+  const handleCommentLike = async (commentId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to like comments",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    const comment = comments.find(c => c.id === commentId || c.replies?.find(r => r.id === commentId));
+    const targetComment = comment?.id === commentId ? comment : comment?.replies?.find(r => r.id === commentId);
+    
+    if (targetComment?.isLiked) {
+      await supabase
+        .from("comment_likes")
+        .delete()
+        .eq("comment_id", commentId)
+        .eq("user_id", user.id);
+    } else {
+      await supabase
+        .from("comment_likes")
+        .insert({ comment_id: commentId, user_id: user.id });
+    }
+
+    fetchComments();
+  };
+
+  const handleReply = async (parentCommentId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to reply",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    if (!replyContent.trim()) return;
+
+    const commentResult = commentSchema.safeParse(replyContent);
+    if (!commentResult.success) {
+      toast({
+        title: "Invalid reply",
+        description: commentResult.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("comments")
+      .insert({ 
+        post_id: id, 
+        user_id: user.id, 
+        content: replyContent,
+        parent_comment_id: parentCommentId 
+      });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to post reply",
+        variant: "destructive",
+      });
+    } else {
+      setReplyContent("");
+      setReplyingTo(null);
+      toast({
+        title: "Success",
+        description: "Reply posted successfully",
+      });
+      fetchComments();
     }
   };
 
@@ -424,17 +563,91 @@ const PostDetail = () => {
 
                 <div className="space-y-4">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="glass-effect p-4 rounded-lg">
-                    <Link 
-                      to={`/profile/${comment.user_id}`}
-                      className="font-medium mb-1 hover:text-primary transition-colors hover:underline block"
-                    >
-                      {comment.profiles.username}
-                    </Link>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {new Date(comment.created_at).toLocaleDateString()}
-                    </p>
-                    <p>{comment.content}</p>
+                  <div key={comment.id} className="space-y-3">
+                    <div className="glass-effect p-4 rounded-lg">
+                      <Link 
+                        to={`/profile/${comment.user_id}`}
+                        className="font-medium mb-1 hover:text-primary transition-colors hover:underline block"
+                      >
+                        {comment.profiles.username}
+                      </Link>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {new Date(comment.created_at).toLocaleDateString()}
+                      </p>
+                      <p className="mb-3">{comment.content}</p>
+                      
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCommentLike(comment.id)}
+                          className="h-8"
+                        >
+                          <Heart className={`w-3 h-3 mr-1 ${comment.isLiked ? "fill-current text-primary" : ""}`} />
+                          {comment.likeCount || 0}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                          className="h-8"
+                        >
+                          <Reply className="w-3 h-3 mr-1" />
+                          Reply
+                        </Button>
+                      </div>
+
+                      {replyingTo === comment.id && currentUser && (
+                        <div className="mt-3 pl-4 border-l-2">
+                          <Textarea
+                            placeholder="Write a reply..."
+                            value={replyContent}
+                            onChange={(e) => setReplyContent(e.target.value)}
+                            className="mb-2"
+                          />
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => handleReply(comment.id)}>
+                              Post Reply
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => {
+                              setReplyingTo(null);
+                              setReplyContent("");
+                            }}>
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {comment.replies && comment.replies.length > 0 && (
+                      <div className="ml-8 space-y-3">
+                        {comment.replies.map((reply) => (
+                          <div key={reply.id} className="glass-effect p-4 rounded-lg">
+                            <Link 
+                              to={`/profile/${reply.user_id}`}
+                              className="font-medium mb-1 hover:text-primary transition-colors hover:underline block"
+                            >
+                              {reply.profiles.username}
+                            </Link>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {new Date(reply.created_at).toLocaleDateString()}
+                            </p>
+                            <p className="mb-3">{reply.content}</p>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCommentLike(reply.id)}
+                              className="h-8"
+                            >
+                              <Heart className={`w-3 h-3 mr-1 ${reply.isLiked ? "fill-current text-primary" : ""}`} />
+                              {reply.likeCount || 0}
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
