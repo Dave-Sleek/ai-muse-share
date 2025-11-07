@@ -7,6 +7,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Heart, MessageCircle, Eye, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
+import BookmarkButton from "@/components/BookmarkButton";
 
 interface Post {
   id: string;
@@ -238,7 +239,7 @@ const Community = () => {
             <CardContent className="p-4">
               <h3 className="font-semibold text-lg mb-2 line-clamp-1">{post.title}</h3>
               <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{post.prompt}</p>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-sm mb-2">
                 <div className="flex items-center gap-4">
                   <Button
                     variant="ghost"
@@ -270,6 +271,9 @@ const Community = () => {
                 >
                   @{post.profiles.username}
                 </Link>
+              </div>
+              <div onClick={(e) => e.stopPropagation()}>
+                <BookmarkButton postId={post.id} variant="outline" size="sm" />
               </div>
             </CardContent>
           </Card>

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import BookmarkButton from "@/components/BookmarkButton";
 
 interface Post {
   id: string;
@@ -155,7 +156,7 @@ const Gallery = () => {
                     {post.prompt}
                   </p>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-3">
                     <Link 
                       to={`/profile/${post.user_id}`}
                       className="text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -183,6 +184,7 @@ const Gallery = () => {
                       </button>
                     </div>
                   </div>
+                  <BookmarkButton postId={post.id} variant="outline" size="sm" showLabel={false} />
                 </div>
               </div>
             ))}

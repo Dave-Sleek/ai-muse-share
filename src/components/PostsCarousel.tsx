@@ -8,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import BookmarkButton from "@/components/BookmarkButton";
 
 interface Post {
   id: string;
@@ -67,13 +68,18 @@ const PostsCarousel = () => {
                     <h3 className="font-semibold text-lg mb-1 truncate">
                       {post.title}
                     </h3>
-                    <Link
-                      to={`/profile/${post.user_id}`}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors inline-block"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      by {post.profiles.username}
-                    </Link>
+                    <div className="flex items-center justify-between">
+                      <Link
+                        to={`/profile/${post.user_id}`}
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors inline-block"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        by {post.profiles.username}
+                      </Link>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <BookmarkButton postId={post.id} variant="ghost" size="icon" showLabel={false} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CarouselItem>

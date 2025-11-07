@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { commentSchema } from "@/lib/validation";
+import BookmarkButton from "@/components/BookmarkButton";
 
 interface Post {
   id: string;
@@ -493,6 +494,7 @@ const PostDetail = () => {
                   <Eye className="w-4 h-4 mr-2" />
                   {viewCount} Views
                 </Button>
+                <BookmarkButton postId={post.id} variant="outline" size="sm" />
               </div>
               
               {currentUser && post.user_id === currentUser.id && (

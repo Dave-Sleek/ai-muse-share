@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ProfileEditForm } from "@/components/ProfileEditForm";
 import { PasswordChangeForm } from "@/components/PasswordChangeForm";
+import BookmarkButton from "@/components/BookmarkButton";
 
 interface UserProfile {
   username: string;
@@ -507,19 +508,24 @@ const Profile = () => {
                         {post.prompt}
                       </p>
 
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <Heart className="w-4 h-4" />
-                          <span>{post.likes.length}</span>
+                      <div className="flex items-center justify-between gap-4 text-sm mb-2">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Heart className="w-4 h-4" />
+                            <span>{post.likes.length}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <MessageCircle className="w-4 h-4" />
+                            <span>{post.comments.length}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Eye className="w-4 h-4" />
+                            <span>{post.post_views.length}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <MessageCircle className="w-4 h-4" />
-                          <span>{post.comments.length}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <Eye className="w-4 h-4" />
-                          <span>{post.post_views.length}</span>
-                        </div>
+                      </div>
+                      <div onClick={(e) => e.preventDefault()}>
+                        <BookmarkButton postId={post.id} variant="outline" size="sm" showLabel={false} />
                       </div>
                     </div>
                   </div>

@@ -50,6 +50,9 @@ const Navbar = () => {
                 <Link to="/community" className="text-foreground hover:text-primary transition-colors">
                   Community
                 </Link>
+                <Link to="/collections" className="text-foreground hover:text-primary transition-colors">
+                  Collections
+                </Link>
                 <Link to="/profile" className="text-foreground hover:text-primary transition-colors">
                   Profile
                 </Link>
@@ -106,6 +109,13 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   Community
+                </Link>
+                <Link
+                  to="/collections"
+                  className="block text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Collections
                 </Link>
                 <Link
                   to="/profile"
