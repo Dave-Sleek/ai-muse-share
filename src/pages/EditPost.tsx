@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Sparkles } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -17,6 +18,7 @@ const EditPost = () => {
   const [title, setTitle] = useState("");
   const [prompt, setPrompt] = useState("");
   const [tags, setTags] = useState<string>("");
+  const [aiModel, setAiModel] = useState<string>("");
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -24,6 +26,19 @@ const EditPost = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const AI_MODELS = [
+    "Midjourney",
+    "DALL-E 3",
+    "DALL-E 2",
+    "Stable Diffusion",
+    "Stable Diffusion XL",
+    "Leonardo AI",
+    "Adobe Firefly",
+    "Google Imagen",
+    "Flux",
+    "Other"
+  ];
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -71,6 +86,7 @@ const EditPost = () => {
       setTitle(data.title);
       setPrompt(data.prompt);
       setTags(data.tags?.join(", ") || "");
+      setAiModel(data.ai_model || "");
       setCurrentImageUrl(data.image_url);
       setImagePreview(data.image_url);
     } catch (error: any) {
@@ -164,6 +180,7 @@ const EditPost = () => {
           prompt,
           image_url: imageUrl,
           tags: tagsArray,
+          ai_model: aiModel || null,
         })
         .eq("id", id);
 
@@ -286,6 +303,27 @@ const EditPost = () => {
                 />
                 <p className="text-xs text-muted-foreground">
                   Add up to 10 tags to help others discover your work. Separate with commas.
+                </p>
+              </div>
+
+              {/* AI Model */}
+              <div className="space-y-2">
+                <Label htmlFor="aiModel">AI Tool Used</Label>
+                <Select value={aiModel} onValueChange={setAiModel}>
+                  <SelectTrigger id="aiModel" className="bg-background/50">
+                    <SelectValue placeholder="Select AI tool (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {AI_MODELS.map((model) => (
+                      <SelectItem key={model} value={model}>
+                        {model}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Help others discover what tools work best for different styles.
                 </p>
               </div>
 

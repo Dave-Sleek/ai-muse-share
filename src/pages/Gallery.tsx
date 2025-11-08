@@ -20,6 +20,7 @@ interface Post {
   created_at: string;
   user_id: string;
   tags: string[];
+  ai_model: string | null;
   profiles: {
     username: string;
   };
@@ -35,8 +36,10 @@ const Gallery = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "popular">("newest");
   const [selectedTag, setSelectedTag] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "week" | "month">("all");
   const [allTags, setAllTags] = useState<string[]>([]);
+  const [allModels, setAllModels] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -54,13 +57,19 @@ const Gallery = () => {
           post.title.toLowerCase().includes(query) ||
           post.prompt.toLowerCase().includes(query) ||
           post.profiles.username.toLowerCase().includes(query) ||
-          post.tags?.some(tag => tag.toLowerCase().includes(query))
+          post.tags?.some(tag => tag.toLowerCase().includes(query)) ||
+          post.ai_model?.toLowerCase().includes(query)
       );
     }
 
     // Tag filter
     if (selectedTag) {
       filtered = filtered.filter(post => post.tags?.includes(selectedTag));
+    }
+
+    // AI Model filter
+    if (selectedModel) {
+      filtered = filtered.filter(post => post.ai_model === selectedModel);
     }
 
     // Date filter
@@ -94,7 +103,7 @@ const Gallery = () => {
     });
 
     setFilteredPosts(filtered);
-  }, [searchQuery, posts, sortBy, selectedTag, dateFilter]);
+  }, [searchQuery, posts, sortBy, selectedTag, selectedModel, dateFilter]);
 
   const fetchPosts = async () => {
     try {
@@ -115,10 +124,13 @@ const Gallery = () => {
 
       // Extract all unique tags
       const tags = new Set<string>();
+      const models = new Set<string>();
       data?.forEach(post => {
         post.tags?.forEach((tag: string) => tags.add(tag));
+        if (post.ai_model) models.add(post.ai_model);
       });
       setAllTags(Array.from(tags).sort());
+      setAllModels(Array.from(models).sort());
     } catch (error) {
       console.error("Error fetching posts:", error);
       toast({
@@ -248,6 +260,23 @@ const Gallery = () => {
                       </PopoverContent>
                     </Popover>
                   )}
+
+                  {/* AI Model Filter */}
+                  {allModels.length > 0 && (
+                    <Select value={selectedModel} onValueChange={setSelectedModel}>
+                      <SelectTrigger className="w-[180px] bg-background/50">
+                        <SelectValue placeholder="AI Model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Models</SelectItem>
+                        {allModels.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
 
                 {/* Active filters count */}
@@ -285,30 +314,45 @@ const Gallery = () => {
                     {post.prompt}
                   </p>
 
-                  {/* Tags */}
-                  {post.tags && post.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {post.tags.slice(0, 3).map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="text-xs cursor-pointer"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setSelectedTag(tag);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                      {post.tags.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{post.tags.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  )}
+                  {/* Tags & AI Model */}
+                  <div className="space-y-2 mb-3">
+                    {post.tags && post.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {post.tags.slice(0, 3).map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="text-xs cursor-pointer"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setSelectedTag(tag);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                        {post.tags.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{post.tags.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                    {post.ai_model && (
+                      <Badge
+                        variant="default"
+                        className="text-xs cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedModel(post.ai_model!);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                      >
+                        🤖 {post.ai_model}
+                      </Badge>
+                    )}
+                  </div>
 
                   <div className="flex items-center justify-between mb-3">
                     <Link 

@@ -285,6 +285,7 @@ export type Database = {
       }
       posts: {
         Row: {
+          ai_model: string | null
           created_at: string
           id: string
           image_url: string
@@ -295,6 +296,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_model?: string | null
           created_at?: string
           id?: string
           image_url: string
@@ -305,6 +307,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_model?: string | null
           created_at?: string
           id?: string
           image_url?: string
