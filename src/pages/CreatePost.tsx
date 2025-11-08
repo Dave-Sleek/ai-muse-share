@@ -15,6 +15,7 @@ const CreatePost = () => {
   const [user, setUser] = useState<User | null>(null);
   const [title, setTitle] = useState("");
   const [prompt, setPrompt] = useState("");
+  const [tags, setTags] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [uploading, setUploading] = useState(false);
@@ -99,6 +100,13 @@ const CreatePost = () => {
         .from("post-images")
         .getPublicUrl(fileName);
 
+      // Parse tags
+      const tagsArray = tags
+        .split(",")
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0)
+        .slice(0, 10); // Limit to 10 tags
+
       // Create post
       const { error: insertError } = await supabase
         .from("posts")
@@ -107,6 +115,7 @@ const CreatePost = () => {
           title,
           prompt,
           image_url: publicUrl,
+          tags: tagsArray,
         });
 
       if (insertError) throw insertError;
@@ -209,6 +218,21 @@ const CreatePost = () => {
                   rows={4}
                   className="bg-background/50"
                 />
+              </div>
+
+              {/* Tags */}
+              <div className="space-y-2">
+                <Label htmlFor="tags">Tags / Categories</Label>
+                <Input
+                  id="tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="e.g., cyberpunk, anime, photorealistic (comma-separated, max 10)"
+                  className="bg-background/50"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Add up to 10 tags to help others discover your work. Separate with commas.
+                </p>
               </div>
 
               {/* Submit Button */}

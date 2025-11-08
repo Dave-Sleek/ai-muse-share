@@ -16,6 +16,7 @@ const EditPost = () => {
   const [user, setUser] = useState<User | null>(null);
   const [title, setTitle] = useState("");
   const [prompt, setPrompt] = useState("");
+  const [tags, setTags] = useState<string>("");
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -69,6 +70,7 @@ const EditPost = () => {
 
       setTitle(data.title);
       setPrompt(data.prompt);
+      setTags(data.tags?.join(", ") || "");
       setCurrentImageUrl(data.image_url);
       setImagePreview(data.image_url);
     } catch (error: any) {
@@ -147,6 +149,13 @@ const EditPost = () => {
         imageUrl = publicUrl;
       }
 
+      // Parse tags
+      const tagsArray = tags
+        .split(",")
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0)
+        .slice(0, 10); // Limit to 10 tags
+
       // Update post
       const { error: updateError } = await supabase
         .from("posts")
@@ -154,6 +163,7 @@ const EditPost = () => {
           title,
           prompt,
           image_url: imageUrl,
+          tags: tagsArray,
         })
         .eq("id", id);
 
@@ -262,6 +272,21 @@ const EditPost = () => {
                   rows={4}
                   className="bg-background/50"
                 />
+              </div>
+
+              {/* Tags */}
+              <div className="space-y-2">
+                <Label htmlFor="tags">Tags / Categories</Label>
+                <Input
+                  id="tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="e.g., cyberpunk, anime, photorealistic (comma-separated, max 10)"
+                  className="bg-background/50"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Add up to 10 tags to help others discover your work. Separate with commas.
+                </p>
               </div>
 
               {/* Submit Buttons */}
