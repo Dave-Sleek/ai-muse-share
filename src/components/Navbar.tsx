@@ -53,6 +53,9 @@ const Navbar = () => {
                 <Link to="/collections" className="text-foreground hover:text-primary transition-colors">
                   Collections
                 </Link>
+                <Link to="/leaderboards" className="text-foreground hover:text-primary transition-colors">
+                  Leaderboards
+                </Link>
                 <Link to="/profile" className="text-foreground hover:text-primary transition-colors">
                   Profile
                 </Link>
@@ -116,6 +119,13 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   Collections
+                </Link>
+                <Link
+                  to="/leaderboards"
+                  className="block text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Leaderboards
                 </Link>
                 <Link
                   to="/profile"

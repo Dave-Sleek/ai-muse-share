@@ -15,6 +15,7 @@ import Discover from "./pages/Discover";
 import Community from "./pages/Community";
 import Collections from "./pages/Collections";
 import CollectionDetail from "./pages/CollectionDetail";
+import Leaderboards from "./pages/Leaderboards";
 import HowToUse from "./pages/HowToUse";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/community" element={<><Community /><Footer /><CookieConsent /></>} />
             <Route path="/collections" element={<><Collections /><Footer /><CookieConsent /></>} />
             <Route path="/collections/:id" element={<><CollectionDetail /><Footer /><CookieConsent /></>} />
+            <Route path="/leaderboards" element={<><Leaderboards /><Footer /><CookieConsent /></>} />
             <Route path="/how-to-use" element={<><HowToUse /><Footer /><CookieConsent /></>} />
             <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /><CookieConsent /></>} />
             <Route path="/terms-of-use" element={<><TermsOfUse /><Footer /><CookieConsent /></>} />
