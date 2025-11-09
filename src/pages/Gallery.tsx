@@ -36,7 +36,7 @@ const Gallery = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "popular">("newest");
   const [selectedTag, setSelectedTag] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "week" | "month">("all");
   const [allTags, setAllTags] = useState<string[]>([]);
   const [allModels, setAllModels] = useState<string[]>([]);
@@ -68,7 +68,7 @@ const Gallery = () => {
     }
 
     // AI Model filter
-    if (selectedModel) {
+    if (selectedModel && selectedModel !== "all") {
       filtered = filtered.filter(post => post.ai_model === selectedModel);
     }
 
@@ -268,7 +268,7 @@ const Gallery = () => {
                         <SelectValue placeholder="AI Model" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Models</SelectItem>
+                        <SelectItem value="all">All Models</SelectItem>
                         {allModels.map((model) => (
                           <SelectItem key={model} value={model}>
                             {model}

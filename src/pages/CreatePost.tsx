@@ -259,7 +259,6 @@ const CreatePost = () => {
                     <SelectValue placeholder="Select AI tool (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
                     {AI_MODELS.map((model) => (
                       <SelectItem key={model} value={model}>
                         {model}
