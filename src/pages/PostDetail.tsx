@@ -3,12 +3,14 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit, Eye, Reply } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit, Eye, Reply, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { commentSchema } from "@/lib/validation";
 import BookmarkButton from "@/components/BookmarkButton";
+import SaveAsTemplateDialog from "@/components/SaveAsTemplateDialog";
 
 interface Post {
   id: string;
@@ -49,6 +51,9 @@ const PostDetail = () => {
   const [loading, setLoading] = useState(true);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
+  const [isTemplate, setIsTemplate] = useState(false);
+  const [templateInfo, setTemplateInfo] = useState<any>(null);
+  const [remixInfo, setRemixInfo] = useState<any>(null);
 
   useEffect(() => {
     fetchPost();
@@ -56,6 +61,8 @@ const PostDetail = () => {
     checkIfLiked();
     fetchLikeCount();
     fetchViewCount();
+    fetchTemplateInfo();
+    fetchRemixInfo();
     trackView();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -263,6 +270,41 @@ const PostDetail = () => {
     setViewCount(count || 0);
   };
 
+  const fetchTemplateInfo = async () => {
+    const { data } = await supabase
+      .from("prompt_templates")
+      .select("*")
+      .eq("post_id", id)
+      .maybeSingle();
+
+    if (data) {
+      setIsTemplate(true);
+      setTemplateInfo(data);
+    }
+  };
+
+  const fetchRemixInfo = async () => {
+    const { data } = await supabase
+      .from("post_remixes")
+      .select(`
+        *,
+        prompt_templates (
+          id,
+          name,
+          posts (
+            id,
+            title
+          )
+        )
+      `)
+      .eq("post_id", id)
+      .maybeSingle();
+
+    if (data) {
+      setRemixInfo(data);
+    }
+  };
+
   const handleLike = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -465,15 +507,34 @@ const PostDetail = () => {
           />
           <div className="p-6">
             <h1 className="text-3xl font-bold mb-2">{post.title}</h1>
-            <p className="text-muted-foreground mb-4">
-              by{" "}
-              <Link 
-                to={`/profile/${post.user_id}`}
-                className="hover:text-primary transition-colors hover:underline"
-              >
-                {post.profiles.username}
-              </Link>
-            </p>
+            <div className="flex items-center gap-2 mb-4">
+              <p className="text-muted-foreground">
+                by{" "}
+                <Link 
+                  to={`/profile/${post.user_id}`}
+                  className="hover:text-primary transition-colors hover:underline"
+                >
+                  {post.profiles.username}
+                </Link>
+              </p>
+              {isTemplate && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  Template
+                </Badge>
+              )}
+              {remixInfo && (
+                <Badge variant="outline" className="flex items-center gap-1">
+                  Remixed from{" "}
+                  <Link 
+                    to={`/post/${remixInfo.prompt_templates.posts.id}`}
+                    className="underline ml-1"
+                  >
+                    {remixInfo.prompt_templates.name}
+                  </Link>
+                </Badge>
+              )}
+            </div>
             <p className="text-lg mb-6">{post.prompt}</p>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -497,14 +558,26 @@ const PostDetail = () => {
                 <BookmarkButton postId={post.id} variant="outline" size="sm" />
               </div>
               
-              {currentUser && post.user_id === currentUser.id && (
-                <Link to={`/edit/${post.id}`}>
-                  <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit Post
-                  </Button>
-                </Link>
-              )}
+              <div className="flex items-center gap-2">
+                {currentUser && post.user_id === currentUser.id && (
+                  <>
+                    <Link to={`/edit/${post.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit Post
+                      </Button>
+                    </Link>
+                    {!isTemplate && (
+                      <SaveAsTemplateDialog 
+                        postId={post.id}
+                        postTitle={post.title}
+                        userId={currentUser.id}
+                        onTemplateSaved={fetchTemplateInfo}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="mb-6">

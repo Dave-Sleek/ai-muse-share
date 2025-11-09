@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { User } from "@supabase/supabase-js";
 import { postTitleSchema, postPromptSchema, imageFileSchema } from "@/lib/validation";
 
 const CreatePost = () => {
+  const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [title, setTitle] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -21,6 +22,7 @@ const CreatePost = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [uploading, setUploading] = useState(false);
+  const [templateId, setTemplateId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -56,8 +58,19 @@ const CreatePost = () => {
       }
     });
 
+    // Check if we're remixing a template
+    if (location.state) {
+      const { templateId: tid, prompt: p, title: t, aiModel: am } = location.state as any;
+      if (tid) {
+        setTemplateId(tid);
+        setPrompt(p || "");
+        setTitle(t || "");
+        setAiModel(am || "");
+      }
+    }
+
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, location]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -123,7 +136,7 @@ const CreatePost = () => {
         .slice(0, 10); // Limit to 10 tags
 
       // Create post
-      const { error: insertError } = await supabase
+      const { data: newPost, error: insertError } = await supabase
         .from("posts")
         .insert({
           user_id: user.id,
@@ -132,13 +145,26 @@ const CreatePost = () => {
           image_url: publicUrl,
           tags: tagsArray,
           ai_model: aiModel || null,
-        });
+        })
+        .select()
+        .single();
 
       if (insertError) throw insertError;
 
+      // If this is a remix, create the remix record
+      if (templateId && newPost) {
+        await supabase
+          .from("post_remixes")
+          .insert({
+            post_id: newPost.id,
+            template_id: templateId,
+            user_id: user.id,
+          });
+      }
+
       toast({
         title: "Success!",
-        description: "Your post has been created",
+        description: templateId ? "Your remix has been created" : "Your post has been created",
       });
       
       navigate("/gallery");
