@@ -130,8 +130,8 @@ const Auth = () => {
               {isForgotPassword
                 ? "Enter your email to receive a reset link"
                 : isSignUp
-                ? "Join the AI art community"
-                : "Sign in to share your AI creations"}
+                  ? "Join the AI art community"
+                  : "Sign in to share your AI creations"}
             </p>
           </div>
 
@@ -207,8 +207,8 @@ const Auth = () => {
               {isSignUp
                 ? "Already have an account? Sign in"
                 : isForgotPassword
-                ? "Back to sign in"
-                : "Don't have an account? Sign up"}
+                  ? "Back to sign in"
+                  : "Don't have an account? Sign up"}
             </button>
           </div>
         </div>
