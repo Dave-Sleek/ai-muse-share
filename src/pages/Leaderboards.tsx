@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,15 +33,11 @@ interface TopCreator {
   followers_count: number;
 }
 
-const Leaderboards = () => {
+const Leaderboards: React.FC = () => {
   const [timeFilter, setTimeFilter] = useState<"week" | "month" | "all">("week");
   const [trendingPosts, setTrendingPosts] = useState<TrendingPost[]>([]);
   const [topCreators, setTopCreators] = useState<TopCreator[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchLeaderboardData();
-  }, [timeFilter]);
 
   const getTimeFilterDate = () => {
     const now = new Date();
@@ -150,6 +146,10 @@ const Leaderboards = () => {
     setLoading(false);
   };
 
+  useEffect(() => {
+    fetchLeaderboardData();
+  }, [timeFilter]);
+
   const getRankBadge = (rank: number) => {
     if (rank === 0) return <Trophy className="w-5 h-5 text-yellow-500" />;
     if (rank === 1) return <Trophy className="w-5 h-5 text-gray-400" />;
@@ -186,7 +186,7 @@ const Leaderboards = () => {
 
           {/* Time Filter */}
           <div className="flex justify-center mb-8">
-            <Select value={timeFilter} onValueChange={(value: any) => setTimeFilter(value)}>
+            <Select value={timeFilter} onValueChange={(value: "week" | "month" | "all") => setTimeFilter(value)}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
