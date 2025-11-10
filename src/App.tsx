@@ -17,6 +17,8 @@ import Collections from "./pages/Collections";
 import CollectionDetail from "./pages/CollectionDetail";
 import Leaderboards from "./pages/Leaderboards";
 import Templates from "./pages/Templates";
+import Challenges from "./pages/Challenges";
+import ChallengeDetail from "./pages/ChallengeDetail";
 import HowToUse from "./pages/HowToUse";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
@@ -48,6 +50,8 @@ const App = () => (
             <Route path="/collections/:id" element={<><CollectionDetail /><Footer /><CookieConsent /></>} />
             <Route path="/leaderboards" element={<><Leaderboards /><Footer /><CookieConsent /></>} />
             <Route path="/templates" element={<><Templates /><Footer /><CookieConsent /></>} />
+            <Route path="/challenges" element={<><Challenges /><Footer /><CookieConsent /></>} />
+            <Route path="/challenges/:id" element={<><ChallengeDetail /><Footer /><CookieConsent /></>} />
             <Route path="/how-to-use" element={<><HowToUse /><Footer /><CookieConsent /></>} />
             <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /><CookieConsent /></>} />
             <Route path="/terms-of-use" element={<><TermsOfUse /><Footer /><CookieConsent /></>} />

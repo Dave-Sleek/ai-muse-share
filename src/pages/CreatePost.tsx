@@ -23,6 +23,8 @@ const CreatePost = () => {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [templateId, setTemplateId] = useState<string | null>(null);
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [challengeTitle, setChallengeTitle] = useState<string>("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -58,14 +60,18 @@ const CreatePost = () => {
       }
     });
 
-    // Check if we're remixing a template
+    // Check if we're remixing a template or submitting to a challenge
     if (location.state) {
-      const { templateId: tid, prompt: p, title: t, aiModel: am } = location.state as any;
+      const { templateId: tid, prompt: p, title: t, aiModel: am, challengeId: cid, challengeTitle: ct } = location.state as any;
       if (tid) {
         setTemplateId(tid);
         setPrompt(p || "");
         setTitle(t || "");
         setAiModel(am || "");
+      }
+      if (cid) {
+        setChallengeId(cid);
+        setChallengeTitle(ct || "");
       }
     }
 
@@ -162,9 +168,20 @@ const CreatePost = () => {
           });
       }
 
+      // If this is a challenge submission, create the submission record
+      if (challengeId && newPost) {
+        await supabase
+          .from("challenge_submissions")
+          .insert({
+            challenge_id: challengeId,
+            post_id: newPost.id,
+            user_id: user.id,
+          });
+      }
+
       toast({
         title: "Success!",
-        description: templateId ? "Your remix has been created" : "Your post has been created",
+        description: challengeId ? "Your challenge entry has been submitted" : templateId ? "Your remix has been created" : "Your post has been created",
       });
       
       navigate("/gallery");
@@ -199,8 +216,12 @@ const CreatePost = () => {
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">Create Post</h1>
-                <p className="text-muted-foreground">Share your AI art with the community</p>
+                <h1 className="text-3xl font-bold">
+                  {challengeId ? "Submit Challenge Entry" : "Create Post"}
+                </h1>
+                <p className="text-muted-foreground">
+                  {challengeId ? `Submitting to: ${challengeTitle}` : "Share your AI art with the community"}
+                </p>
               </div>
             </div>
 
