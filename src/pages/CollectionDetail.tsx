@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Globe, Lock, Trash2, Heart, MessageCircle, Eye } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+// import Footer from "@/components/Footer";
 
 interface Collection {
   id: string;
@@ -69,7 +69,7 @@ const CollectionDetail = () => {
       const postsData = await Promise.all(
         bookmarksData.map(async (bookmark: any) => {
           const post = bookmark.posts;
-          
+
           const { count: likesCount } = await supabase
             .from("likes")
             .select("*", { count: "exact", head: true })
@@ -140,7 +140,7 @@ const CollectionDetail = () => {
             </Button>
           </div>
         </main>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     );
   }
@@ -251,7 +251,7 @@ const CollectionDetail = () => {
           )}
         </div>
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

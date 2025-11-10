@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Folder, Lock, Globe, Trash2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+// import Footer from "@/components/Footer";
 
 interface Collection {
   id: string;
@@ -252,7 +252,7 @@ const Collections = () => {
           )}
         </div>
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

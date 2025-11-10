@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit, Eye, Reply, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+// import Footer from "@/components/Footer";
 import { commentSchema } from "@/lib/validation";
 import BookmarkButton from "@/components/BookmarkButton";
 import SaveAsTemplateDialog from "@/components/SaveAsTemplateDialog";
@@ -76,12 +76,12 @@ const PostDetail = () => {
 
   const trackView = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     await supabase
       .from("post_views")
-      .insert({ 
-        post_id: id, 
-        user_id: user?.id || null 
+      .insert({
+        post_id: id,
+        user_id: user?.id || null
       })
       .select()
       .maybeSingle();
@@ -384,7 +384,7 @@ const PostDetail = () => {
 
     const comment = comments.find(c => c.id === commentId || c.replies?.find(r => r.id === commentId));
     const targetComment = comment?.id === commentId ? comment : comment?.replies?.find(r => r.id === commentId);
-    
+
     if (targetComment?.isLiked) {
       await supabase
         .from("comment_likes")
@@ -425,11 +425,11 @@ const PostDetail = () => {
 
     const { error } = await supabase
       .from("comments")
-      .insert({ 
-        post_id: id, 
-        user_id: user.id, 
+      .insert({
+        post_id: id,
+        user_id: user.id,
         content: replyContent,
-        parent_comment_id: parentCommentId 
+        parent_comment_id: parentCommentId
       });
 
     if (error) {
@@ -510,7 +510,7 @@ const PostDetail = () => {
             <div className="flex items-center gap-2 mb-4">
               <p className="text-muted-foreground">
                 by{" "}
-                <Link 
+                <Link
                   to={`/profile/${post.user_id}`}
                   className="hover:text-primary transition-colors hover:underline"
                 >
@@ -526,7 +526,7 @@ const PostDetail = () => {
               {remixInfo && (
                 <Badge variant="outline" className="flex items-center gap-1">
                   Remixed from{" "}
-                  <Link 
+                  <Link
                     to={`/post/${remixInfo.prompt_templates.posts.id}`}
                     className="underline ml-1"
                   >
@@ -557,7 +557,7 @@ const PostDetail = () => {
                 </Button>
                 <BookmarkButton postId={post.id} variant="outline" size="sm" />
               </div>
-              
+
               <div className="flex items-center gap-2">
                 {currentUser && post.user_id === currentUser.id && (
                   <>
@@ -568,7 +568,7 @@ const PostDetail = () => {
                       </Button>
                     </Link>
                     {!isTemplate && (
-                      <SaveAsTemplateDialog 
+                      <SaveAsTemplateDialog
                         postId={post.id}
                         postTitle={post.title}
                         userId={currentUser.id}
@@ -636,11 +636,11 @@ const PostDetail = () => {
                 </p>
               )}
 
-                <div className="space-y-4">
+              <div className="space-y-4">
                 {comments.map((comment) => (
                   <div key={comment.id} className="space-y-3">
                     <div className="glass-effect p-4 rounded-lg">
-                      <Link 
+                      <Link
                         to={`/profile/${comment.user_id}`}
                         className="font-medium mb-1 hover:text-primary transition-colors hover:underline block"
                       >
@@ -650,7 +650,7 @@ const PostDetail = () => {
                         {new Date(comment.created_at).toLocaleDateString()}
                       </p>
                       <p className="mb-3">{comment.content}</p>
-                      
+
                       <div className="flex items-center gap-3">
                         <Button
                           variant="ghost"
@@ -699,7 +699,7 @@ const PostDetail = () => {
                       <div className="ml-8 space-y-3">
                         {comment.replies.map((reply) => (
                           <div key={reply.id} className="glass-effect p-4 rounded-lg">
-                            <Link 
+                            <Link
                               to={`/profile/${reply.user_id}`}
                               className="font-medium mb-1 hover:text-primary transition-colors hover:underline block"
                             >
@@ -709,7 +709,7 @@ const PostDetail = () => {
                               {new Date(reply.created_at).toLocaleDateString()}
                             </p>
                             <p className="mb-3">{reply.content}</p>
-                            
+
                             <Button
                               variant="ghost"
                               size="sm"
@@ -730,7 +730,7 @@ const PostDetail = () => {
           </div>
         </div>
       </div>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };
