@@ -24,6 +24,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
+import About from "./components/About";
 import CookieConsent from "./components/CookieConsent";
 
 const queryClient = new QueryClient();
@@ -55,13 +56,15 @@ const App = () => (
             <Route path="/how-to-use" element={<><HowToUse /><Footer /><CookieConsent /></>} />
             <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /><CookieConsent /></>} />
             <Route path="/terms-of-use" element={<><TermsOfUse /><Footer /><CookieConsent /></>} />
+            <Route path="/about" element={<><About /><Footer /><CookieConsent /></>} />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
-  </QueryClientProvider>
+  </QueryClientProvider >
 );
 
 export default App;
