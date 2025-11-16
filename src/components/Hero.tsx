@@ -48,6 +48,7 @@ const Hero = () => {
 
       {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <br /><br /><br />
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 mb-8 animate-fade-in">
           <Sparkles className="w-4 h-4 text-primary" />
           <span className="text-sm text-muted-foreground">Discover AI-Generated Masterpieces</span>
