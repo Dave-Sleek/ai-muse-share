@@ -27,6 +27,7 @@ import Footer from "./components/Footer";
 import About from "./components/About";
 import CookieConsent from "./components/CookieConsent";
 import RouteChangeLoader from "./components/RouteChangeLoader";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +38,8 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <RouteChangeLoader /> {/* 👈 Add this here */}
+          <RouteChangeLoader />
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/gallery" element={<><Gallery /><Footer /><CookieConsent /></>} />

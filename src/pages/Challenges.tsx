@@ -99,7 +99,7 @@ const Challenges = () => {
           <span className="font-medium">Theme:</span>
           <span>{challenge.theme}</span>
         </div>
-        
+
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="w-4 h-4" />
           <span>{format(new Date(challenge.start_date), "MMM d")} - {format(new Date(challenge.end_date), "MMM d, yyyy")}</span>
@@ -110,8 +110,8 @@ const Challenges = () => {
           <span>{challenge.submission_count} {challenge.submission_count === 1 ? "submission" : "submissions"}</span>
         </div>
 
-        <Button 
-          variant={status === "active" ? "hero" : "outline"} 
+        <Button
+          variant={status === "active" ? "hero" : "outline"}
           className="w-full"
           onClick={(e) => {
             e.stopPropagation();
