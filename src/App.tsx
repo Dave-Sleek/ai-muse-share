@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 import About from "./components/About";
 import CookieConsent from "./components/CookieConsent";
+import RouteChangeLoader from "./components/RouteChangeLoader";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <RouteChangeLoader /> {/* 👈 Add this here */}
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/gallery" element={<><Gallery /><Footer /><CookieConsent /></>} />
