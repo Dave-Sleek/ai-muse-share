@@ -53,6 +53,13 @@ const Profile = () => {
       setCurrentUser(session?.user || null);
       
       const targetUserId = userId || session?.user?.id;
+      
+      // If no userId param and no logged-in user, redirect to auth
+      if (!userId && !session?.user) {
+        navigate("/auth");
+        return;
+      }
+      
       if (targetUserId) {
         fetchProfile(targetUserId);
         fetchPosts(targetUserId);
@@ -60,6 +67,8 @@ const Profile = () => {
         if (session?.user && userId && userId !== session.user.id) {
           checkFollowStatus(session.user.id, userId);
         }
+      } else {
+        setLoading(false);
       }
     };
     checkAuth();
@@ -67,6 +76,13 @@ const Profile = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setCurrentUser(session?.user || null);
       const targetUserId = userId || session?.user?.id;
+      
+      // If no userId param and no logged-in user, redirect to auth
+      if (!userId && !session?.user) {
+        navigate("/auth");
+        return;
+      }
+      
       if (targetUserId) {
         fetchProfile(targetUserId);
         fetchPosts(targetUserId);
@@ -74,6 +90,8 @@ const Profile = () => {
         if (session?.user && userId && userId !== session.user.id) {
           checkFollowStatus(session.user.id, userId);
         }
+      } else {
+        setLoading(false);
       }
     });
 
