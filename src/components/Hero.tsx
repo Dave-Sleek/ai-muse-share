@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
-{/* <img src="/assets/hero-bg.jpg" alt="Hero background" /> */ }
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
