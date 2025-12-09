@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import GoalSetting from "@/components/GoalSetting";
+import StreakTracker from "@/components/StreakTracker";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -464,16 +465,21 @@ const Statistics: React.FC = () => {
             )}
           </div>
 
-          {/* Goals Section */}
-          <div className="mb-8">
-            <GoalSetting 
-              userId={userId!} 
-              currentStats={{
-                followers: overviewStats.totalFollowers,
-                likes: overviewStats.totalLikes,
-                posts: overviewStats.totalPosts
-              }}
-            />
+          {/* Goals & Streak Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="lg:col-span-2">
+              <GoalSetting 
+                userId={userId!} 
+                currentStats={{
+                  followers: overviewStats.totalFollowers,
+                  likes: overviewStats.totalLikes,
+                  posts: overviewStats.totalPosts
+                }}
+              />
+            </div>
+            <div>
+              <StreakTracker userId={userId!} />
+            </div>
           </div>
 
           {/* Charts Section */}
