@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import GoalSetting from "@/components/GoalSetting";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -461,6 +462,18 @@ const Statistics: React.FC = () => {
                 <StatCard title="Engagement Rate" value={`${overviewStats.avgEngagement}%`} icon={Flame} color="accent" />
               </>
             )}
+          </div>
+
+          {/* Goals Section */}
+          <div className="mb-8">
+            <GoalSetting 
+              userId={userId!} 
+              currentStats={{
+                followers: overviewStats.totalFollowers,
+                likes: overviewStats.totalLikes,
+                posts: overviewStats.totalPosts
+              }}
+            />
           </div>
 
           {/* Charts Section */}
