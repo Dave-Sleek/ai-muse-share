@@ -21,6 +21,8 @@ interface UserGoal {
   is_completed: boolean;
 }
 
+const MILESTONES = [25, 50, 75] as const;
+
 interface GoalSettingProps {
   userId: string;
   currentStats: {
@@ -92,6 +94,8 @@ const GoalSetting: React.FC<GoalSettingProps> = ({ userId, currentStats }) => {
     for (const goal of goals) {
       const currentValue = currentStats[goal.goal_type];
       const isCompleted = currentValue >= goal.target_value;
+      const oldProgress = (goal.current_value / goal.target_value) * 100;
+      const newProgress = (currentValue / goal.target_value) * 100;
 
       if (goal.current_value !== currentValue || goal.is_completed !== isCompleted) {
         await supabase
@@ -101,6 +105,17 @@ const GoalSetting: React.FC<GoalSettingProps> = ({ userId, currentStats }) => {
             is_completed: isCompleted
           })
           .eq("id", goal.id);
+
+        // Check for milestone celebrations
+        for (const milestone of MILESTONES) {
+          if (oldProgress < milestone && newProgress >= milestone && newProgress < 100) {
+            toast({
+              title: `${milestone}% Milestone Reached! 🎯`,
+              description: `Amazing progress on your ${GOAL_CONFIG[goal.goal_type].label.toLowerCase()} goal!`,
+            });
+            break; // Only show one milestone notification at a time
+          }
+        }
 
         if (isCompleted && !goal.is_completed) {
           toast({
