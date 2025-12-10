@@ -151,11 +151,11 @@ export const ProfileEditForm = ({ currentProfile, userId, onSuccess }: ProfileEd
         <h3 className="text-lg font-semibold">Social Media Links</h3>
         
         <div className="space-y-2">
-          <Label htmlFor="twitter">Twitter / X</Label>
+          <Label htmlFor="twitter">X (formerly Twitter)</Label>
           <Input
             id="twitter"
             {...register("twitter")}
-            placeholder="https://twitter.com/username"
+            placeholder="https://x.com/username"
           />
           {errors.twitter && (
             <p className="text-sm text-destructive">{errors.twitter.message}</p>
