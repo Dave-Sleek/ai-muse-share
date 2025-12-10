@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ProfileEditForm } from "@/components/ProfileEditForm";
 import { PasswordChangeForm } from "@/components/PasswordChangeForm";
 import BookmarkButton from "@/components/BookmarkButton";
+import { ProfileAchievements } from "@/components/ProfileAchievements";
 
 interface UserProfile {
   username: string;
@@ -482,6 +483,13 @@ const Profile = () => {
               </div>
             </div>
           </div>
+
+          {/* Achievements Showcase */}
+          {profileUserId && (
+            <div className="mb-8">
+              <ProfileAchievements userId={profileUserId} />
+            </div>
+          )}
 
           {/* Posts Section Header */}
           <div className="flex items-center justify-between mb-6">
