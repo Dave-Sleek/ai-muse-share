@@ -454,7 +454,7 @@ const PostDetail = () => {
     const text = `Check out this AI art: ${post?.title}`;
 
     const urls: { [key: string]: string } = {
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      x: `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
     };
@@ -586,10 +586,10 @@ const PostDetail = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => shareToSocial("twitter")}
+                  onClick={() => shareToSocial("x")}
                 >
                   <Share2 className="w-4 h-4 mr-2" />
-                  Twitter
+                  X
                 </Button>
                 <Button
                   variant="outline"
