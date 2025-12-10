@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import GoalSetting from "@/components/GoalSetting";
 import StreakTracker from "@/components/StreakTracker";
+import { Achievements } from "@/components/Achievements";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -82,6 +83,7 @@ const Statistics: React.FC = () => {
   const [timeRange, setTimeRange] = useState<"7" | "30" | "90">("30");
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [currentStreak, setCurrentStreak] = useState(0);
   const [overviewStats, setOverviewStats] = useState<OverviewStats>({
     totalPosts: 0,
     totalLikes: 0,
@@ -128,10 +130,22 @@ const Statistics: React.FC = () => {
       fetchDailyStats(days),
       fetchTopPosts(startDate),
       fetchEngagementByHour(startDate),
-      fetchContentDistribution()
+      fetchContentDistribution(),
+      fetchStreak()
     ]);
 
     setLoading(false);
+  };
+
+  const fetchStreak = async () => {
+    const { data } = await supabase
+      .from("user_streaks")
+      .select("current_streak")
+      .eq("user_id", userId)
+      .eq("streak_type", "posts")
+      .maybeSingle();
+    
+    setCurrentStreak(data?.current_streak || 0);
   };
 
   const fetchOverviewStats = async (startDate: string) => {
@@ -464,6 +478,22 @@ const Statistics: React.FC = () => {
               </>
             )}
           </div>
+
+          {/* Achievements Section */}
+          {userId && (
+            <div className="mb-8">
+              <Achievements
+                userId={userId}
+                userStats={{
+                  posts: overviewStats.totalPosts,
+                  likes_received: overviewStats.totalLikes,
+                  comments_received: overviewStats.totalComments,
+                  followers: overviewStats.totalFollowers,
+                  streak: currentStreak
+                }}
+              />
+            </div>
+          )}
 
           {/* Goals & Streak Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
