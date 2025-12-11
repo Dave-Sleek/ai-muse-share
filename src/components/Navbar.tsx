@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Notifications from "./Notifications";
 import ThemeToggle from "./ThemeToggle";
+import { CoinBalance } from "./CoinBalance";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -65,9 +66,13 @@ const Navbar = () => {
                 <Link to="/statistics" className="text-foreground hover:text-primary transition-colors">
                   Statistics
                 </Link>
+                <Link to="/earnings" className="text-foreground hover:text-primary transition-colors">
+                  Earnings
+                </Link>
                 <Link to="/profile" className="text-foreground hover:text-primary transition-colors">
                   Profile
                 </Link>
+                <CoinBalance />
                 <Notifications />
               </>
             ) : (
@@ -158,13 +163,21 @@ const Navbar = () => {
                   Statistics
                 </Link>
                 <Link
+                  to="/earnings"
+                  className="block text-foreground hover:text-primary transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Earnings
+                </Link>
+                <Link
                   to="/profile"
                   className="block text-foreground hover:text-primary transition-colors py-2"
                   onClick={() => setIsOpen(false)}
                 >
                   Profile
                 </Link>
-                <div className="py-2">
+                <div className="py-2 flex items-center gap-4">
+                  <CoinBalance />
                   <Notifications />
                 </div>
               </>
