@@ -287,6 +287,51 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_transactions: {
+        Row: {
+          coin_amount: number
+          created_at: string
+          gift_id: string
+          id: string
+          post_id: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          coin_amount: number
+          created_at?: string
+          gift_id: string
+          id?: string
+          post_id?: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          coin_amount?: number
+          created_at?: string
+          gift_id?: string
+          id?: string
+          post_id?: string | null
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_transactions_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_gifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gift_transactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       likes: {
         Row: {
           created_at: string
@@ -472,30 +517,36 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          coin_balance: number
           created_at: string
           id: string
           location: string | null
           social_links: Json | null
+          total_earnings: number
           updated_at: string
           username: string
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          coin_balance?: number
           created_at?: string
           id: string
           location?: string | null
           social_links?: Json | null
+          total_earnings?: number
           updated_at?: string
           username: string
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          coin_balance?: number
           created_at?: string
           id?: string
           location?: string | null
           social_links?: Json | null
+          total_earnings?: number
           updated_at?: string
           username?: string
         }
@@ -649,12 +700,77 @@ export type Database = {
         }
         Relationships: []
       }
+      view_earnings: {
+        Row: {
+          coins_earned: number
+          created_at: string
+          earning_date: string
+          id: string
+          post_id: string | null
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          coins_earned?: number
+          created_at?: string
+          earning_date?: string
+          id?: string
+          post_id?: string | null
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          coins_earned?: number
+          created_at?: string
+          earning_date?: string
+          id?: string
+          post_id?: string | null
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "view_earnings_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      virtual_gifts: {
+        Row: {
+          coin_cost: number
+          created_at: string
+          icon: string
+          id: string
+          name: string
+        }
+        Insert: {
+          coin_cost: number
+          created_at?: string
+          icon: string
+          id?: string
+          name: string
+        }
+        Update: {
+          coin_cost?: number
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      send_gift: {
+        Args: { p_gift_id: string; p_post_id: string; p_recipient_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

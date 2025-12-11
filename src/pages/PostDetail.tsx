@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import { commentSchema } from "@/lib/validation";
 import BookmarkButton from "@/components/BookmarkButton";
 import SaveAsTemplateDialog from "@/components/SaveAsTemplateDialog";
+import { SendGiftDialog } from "@/components/SendGiftDialog";
 
 interface Post {
   id: string;
@@ -556,6 +557,13 @@ const PostDetail = () => {
                   {viewCount} Views
                 </Button>
                 <BookmarkButton postId={post.id} variant="outline" size="sm" />
+                {currentUser && post.user_id !== currentUser.id && (
+                  <SendGiftDialog
+                    recipientId={post.user_id}
+                    postId={post.id}
+                    recipientUsername={post.profiles.username}
+                  />
+                )}
               </div>
 
               <div className="flex items-center gap-2">
