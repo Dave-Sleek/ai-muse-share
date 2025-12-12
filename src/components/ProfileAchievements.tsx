@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Sparkles, Flame, Zap, Trophy, Heart, Star, Rocket,
-  MessageCircle, Users, Calendar, Crown, UserPlus, TrendingUp, Award
+  MessageCircle, Users, Calendar, Crown, UserPlus, TrendingUp, Award, Coins
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -17,6 +17,7 @@ interface Achievement {
   name: string;
   description: string;
   icon: string;
+  coin_reward: number;
 }
 
 interface ProfileAchievementsProps {
@@ -53,7 +54,7 @@ export const ProfileAchievements = ({ userId }: ProfileAchievementsProps) => {
       const achievementIds = userAchievements.map(ua => ua.achievement_id);
       const { data: achievements, error: achievementsError } = await supabase
         .from('achievements')
-        .select('id, name, description, icon')
+        .select('id, name, description, icon, coin_reward')
         .in('id', achievementIds);
 
       if (achievementsError) throw achievementsError;
@@ -111,6 +112,10 @@ export const ProfileAchievements = ({ userId }: ProfileAchievementsProps) => {
                 <IconComponent className="h-3.5 w-3.5 text-white" />
               </div>
               <span className="text-sm font-medium">{achievement.name}</span>
+              <div className="flex items-center gap-0.5 text-xs text-yellow-600">
+                <Coins className="w-3 h-3" />
+                <span>{achievement.coin_reward}</span>
+              </div>
               
               {/* Tooltip */}
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-popover border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 w-48 text-center pointer-events-none">
