@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       achievements: {
         Row: {
+          coin_reward: number
           created_at: string
           description: string
           icon: string
@@ -25,6 +26,7 @@ export type Database = {
           requirement_value: number
         }
         Insert: {
+          coin_reward?: number
           created_at?: string
           description: string
           icon: string
@@ -34,6 +36,7 @@ export type Database = {
           requirement_value: number
         }
         Update: {
+          coin_reward?: number
           created_at?: string
           description?: string
           icon?: string
@@ -265,6 +268,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      daily_logins: {
+        Row: {
+          coins_earned: number
+          created_at: string
+          id: string
+          login_date: string
+          user_id: string
+        }
+        Insert: {
+          coins_earned?: number
+          created_at?: string
+          id?: string
+          login_date?: string
+          user_id: string
+        }
+        Update: {
+          coins_earned?: number
+          created_at?: string
+          id?: string
+          login_date?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       follows: {
         Row: {
@@ -674,6 +701,7 @@ export type Database = {
           id: string
           last_activity_date: string | null
           longest_streak: number
+          streak_coins_claimed: number[]
           streak_type: string
           updated_at: string
           user_id: string
@@ -684,6 +712,7 @@ export type Database = {
           id?: string
           last_activity_date?: string | null
           longest_streak?: number
+          streak_coins_claimed?: number[]
           streak_type?: string
           updated_at?: string
           user_id: string
@@ -694,6 +723,7 @@ export type Database = {
           id?: string
           last_activity_date?: string | null
           longest_streak?: number
+          streak_coins_claimed?: number[]
           streak_type?: string
           updated_at?: string
           user_id?: string
@@ -767,6 +797,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_daily_login: { Args: never; Returns: Json }
+      claim_streak_milestone: { Args: { p_milestone: number }; Returns: Json }
       send_gift: {
         Args: { p_gift_id: string; p_post_id: string; p_recipient_id: string }
         Returns: boolean

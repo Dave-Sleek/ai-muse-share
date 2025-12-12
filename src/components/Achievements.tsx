@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
 import {
   Sparkles, Flame, Zap, Trophy, Heart, Star, Rocket,
-  MessageCircle, Users, Calendar, Crown, UserPlus, TrendingUp, Award, Lock
+  MessageCircle, Users, Calendar, Crown, UserPlus, TrendingUp, Award, Lock, Coins
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -21,6 +21,7 @@ interface Achievement {
   icon: string;
   requirement_type: string;
   requirement_value: number;
+  coin_reward: number;
 }
 
 interface UserAchievement {
@@ -109,7 +110,7 @@ export const Achievements = ({ userId, userStats }: AchievementsProps) => {
       newlyUnlocked.forEach(achievement => {
         toast({
           title: "🏆 Achievement Unlocked!",
-          description: `${achievement.name}: ${achievement.description}`,
+          description: `${achievement.name}: ${achievement.description} (+${achievement.coin_reward} coins)`,
         });
       });
     }
@@ -202,6 +203,10 @@ export const Achievements = ({ userId, userStats }: AchievementsProps) => {
                     )}
                   </div>
                   <h4 className="font-semibold text-sm">{achievement.name}</h4>
+                  <div className="flex items-center gap-1 text-xs text-yellow-600">
+                    <Coins className="w-3 h-3" />
+                    <span>{achievement.coin_reward} coins</span>
+                  </div>
                   <p className="text-xs text-muted-foreground line-clamp-2">
                     {achievement.description}
                   </p>

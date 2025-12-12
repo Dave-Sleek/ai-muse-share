@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Flame, Trophy, Calendar, Zap } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { Flame, Trophy, Calendar, Zap, Coins } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 
 interface UserStreak {
@@ -11,15 +14,23 @@ interface UserStreak {
   longest_streak: number;
   last_activity_date: string | null;
   streak_type: string;
+  streak_coins_claimed: number[];
 }
 
 interface StreakTrackerProps {
   userId: string;
 }
 
+const MILESTONES = [
+  { days: 7, reward: 25, label: '7 Day Streak' },
+  { days: 30, reward: 100, label: '30 Day Streak' },
+  { days: 100, reward: 500, label: '100 Day Streak' },
+];
+
 const StreakTracker: React.FC<StreakTrackerProps> = ({ userId }) => {
   const [streak, setStreak] = useState<UserStreak | null>(null);
   const [loading, setLoading] = useState(true);
+  const [claiming, setClaiming] = useState<number | null>(null);
 
   useEffect(() => {
     fetchStreak();
@@ -40,6 +51,43 @@ const StreakTracker: React.FC<StreakTrackerProps> = ({ userId }) => {
       console.error("Error fetching streak:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const claimMilestone = async (milestone: number) => {
+    setClaiming(milestone);
+    try {
+      const { data, error } = await supabase.rpc('claim_streak_milestone', { p_milestone: milestone });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; coins: number; milestone: number; message?: string };
+
+      if (result.success) {
+        setStreak(prev => prev ? {
+          ...prev,
+          streak_coins_claimed: [...(prev.streak_coins_claimed || []), milestone]
+        } : null);
+        toast({
+          title: "🔥 Streak Milestone Claimed!",
+          description: `You earned ${result.coins} coins for your ${milestone}-day streak!`,
+        });
+      } else {
+        toast({
+          title: "Cannot Claim",
+          description: result.message || "Already claimed",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error claiming milestone:', error);
+      toast({
+        title: "Error",
+        description: "Failed to claim milestone reward",
+        variant: "destructive",
+      });
+    } finally {
+      setClaiming(null);
     }
   };
 
@@ -148,50 +196,59 @@ const StreakTracker: React.FC<StreakTrackerProps> = ({ userId }) => {
           </div>
         </div>
 
-        {/* Streak Milestones */}
-        {currentStreak > 0 && (
-          <div className="pt-2 border-t">
-            <p className="text-xs text-muted-foreground mb-2">Next milestone</p>
-            <div className="flex items-center gap-2">
-              {currentStreak < 7 && (
-                <>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+        {/* Streak Milestones with Rewards */}
+        <div className="pt-2 border-t space-y-2">
+          <p className="text-xs text-muted-foreground mb-2">Milestone Rewards</p>
+          {MILESTONES.map(({ days, reward, label }) => {
+            const reached = currentStreak >= days;
+            const claimed = streak?.streak_coins_claimed?.includes(days);
+            const canClaim = reached && !claimed;
+            const progress = Math.min((currentStreak / days) * 100, 100);
+
+            return (
+              <div key={days} className="flex items-center gap-2">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium">{label}</span>
+                    <div className="flex items-center gap-1">
+                      <Coins className="w-3 h-3 text-yellow-500" />
+                      <span className="text-xs font-medium">{reward}</span>
+                    </div>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-primary to-secondary transition-all"
-                      style={{ width: `${(currentStreak / 7) * 100}%` }}
+                      className={`h-full transition-all ${
+                        claimed ? 'bg-green-500' : 
+                        reached ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                        'bg-gradient-to-r from-primary/50 to-secondary/50'
+                      }`}
+                      style={{ width: `${progress}%` }}
                     />
                   </div>
-                  <span className="text-xs font-medium">7 days</span>
-                </>
-              )}
-              {currentStreak >= 7 && currentStreak < 30 && (
-                <>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all"
-                      style={{ width: `${(currentStreak / 30) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-medium">30 days</span>
-                </>
-              )}
-              {currentStreak >= 30 && currentStreak < 100 && (
-                <>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-orange-500 to-red-500 transition-all"
-                      style={{ width: `${(currentStreak / 100) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-medium">100 days</span>
-                </>
-              )}
-              {currentStreak >= 100 && (
-                <span className="text-xs font-medium text-orange-500">🔥 Legendary!</span>
-              )}
-            </div>
-          </div>
-        )}
+                </div>
+                {canClaim ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs border-yellow-500/50 text-yellow-600 hover:bg-yellow-500/10"
+                    onClick={() => claimMilestone(days)}
+                    disabled={claiming === days}
+                  >
+                    {claiming === days ? '...' : 'Claim'}
+                  </Button>
+                ) : claimed ? (
+                  <Badge variant="outline" className="text-xs border-green-500/50 text-green-600">
+                    ✓
+                  </Badge>
+                ) : (
+                  <span className="text-xs text-muted-foreground w-12 text-right">
+                    {currentStreak}/{days}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

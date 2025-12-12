@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import GoalSetting from "@/components/GoalSetting";
 import StreakTracker from "@/components/StreakTracker";
 import { Achievements } from "@/components/Achievements";
+import { DailyLoginBonus } from "@/components/DailyLoginBonus";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -495,7 +496,7 @@ const Statistics: React.FC = () => {
             </div>
           )}
 
-          {/* Goals & Streak Section */}
+          {/* Goals, Streak & Daily Login Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2">
               <GoalSetting 
@@ -507,7 +508,8 @@ const Statistics: React.FC = () => {
                 }}
               />
             </div>
-            <div>
+            <div className="space-y-6">
+              <DailyLoginBonus userId={userId!} />
               <StreakTracker userId={userId!} />
             </div>
           </div>
