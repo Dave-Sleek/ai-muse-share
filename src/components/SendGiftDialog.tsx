@@ -95,9 +95,9 @@ export const SendGiftDialog = ({ recipientId, postId, recipientUsername }: SendG
     setSending(true);
     const { error } = await supabase.rpc("send_gift", {
       p_recipient_id: recipientId,
-      p_post_id: postId || null,
+      p_post_id: postId ?? null,
       p_gift_id: selectedGift.id,
-    });
+    } as { p_recipient_id: string; p_post_id: string; p_gift_id: string });
 
     if (error) {
       toast({
