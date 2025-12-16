@@ -400,6 +400,7 @@ export type Database = {
           actor_id: string
           comment_id: string | null
           created_at: string
+          gift_id: string | null
           id: string
           is_read: boolean
           post_id: string
@@ -410,6 +411,7 @@ export type Database = {
           actor_id: string
           comment_id?: string | null
           created_at?: string
+          gift_id?: string | null
           id?: string
           is_read?: boolean
           post_id: string
@@ -420,13 +422,22 @@ export type Database = {
           actor_id?: string
           comment_id?: string | null
           created_at?: string
+          gift_id?: string | null
           id?: string
           is_read?: boolean
           post_id?: string
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_gifts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       post_remixes: {
         Row: {
