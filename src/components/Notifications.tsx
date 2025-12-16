@@ -14,7 +14,7 @@ interface Notification {
   id: string;
   post_id: string;
   actor_id: string;
-  type: "like" | "comment";
+  type: "like" | "comment" | "gift";
   is_read: boolean;
   created_at: string;
   profiles: {
@@ -174,11 +174,16 @@ const Notifications = () => {
                     <span className="font-medium">
                       {notification.profiles.username}
                     </span>{" "}
-                    {notification.type === "like" ? "liked" : "commented on"}{" "}
+                    {notification.type === "like" 
+                      ? "liked" 
+                      : notification.type === "comment" 
+                        ? "commented on" 
+                        : "sent you a gift on"}{" "}
                     your post{" "}
                     <span className="font-medium">
                       "{notification.posts.title}"
                     </span>
+                    {notification.type === "gift" && " 🎁"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {new Date(notification.created_at).toLocaleDateString()}
