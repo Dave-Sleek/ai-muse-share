@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { Gift, Coins, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface VirtualGift {
   id: string;
@@ -25,6 +26,8 @@ export const SendGiftDialog = ({ recipientId, postId, recipientUsername }: SendG
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [selectedGift, setSelectedGift] = useState<VirtualGift | null>(null);
+  const [showFlyingGift, setShowFlyingGift] = useState(false);
+  const [flyingGiftIcon, setFlyingGiftIcon] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -105,16 +108,25 @@ export const SendGiftDialog = ({ recipientId, postId, recipientUsername }: SendG
         description: error.message || "Failed to send gift",
         variant: "destructive",
       });
+      setSending(false);
     } else {
-      toast({
-        title: "Gift sent! 🎁",
-        description: `You sent a ${selectedGift.name} to ${recipientUsername}`,
-      });
-      setOpen(false);
-      setSelectedGift(null);
-      fetchBalance();
+      // Trigger flying animation
+      setFlyingGiftIcon(selectedGift.icon);
+      setShowFlyingGift(true);
+      
+      // Wait for animation to complete before closing
+      setTimeout(() => {
+        setShowFlyingGift(false);
+        toast({
+          title: "Gift sent! 🎁",
+          description: `You sent a ${selectedGift.name} to ${recipientUsername}`,
+        });
+        setOpen(false);
+        setSelectedGift(null);
+        fetchBalance();
+        setSending(false);
+      }, 1000);
     }
-    setSending(false);
   };
 
   return (
@@ -125,7 +137,27 @@ export const SendGiftDialog = ({ recipientId, postId, recipientUsername }: SendG
           Send Gift
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md overflow-hidden">
+        {/* Flying Gift Animation */}
+        <AnimatePresence>
+          {showFlyingGift && (
+            <motion.div
+              initial={{ scale: 1, x: 0, y: 0, opacity: 1 }}
+              animate={{ 
+                scale: [1, 1.5, 0.5],
+                x: [0, 50, 200],
+                y: [0, -100, -200],
+                opacity: [1, 1, 0],
+                rotate: [0, 15, -15, 0]
+              }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="absolute z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            >
+              <div className="text-6xl">{flyingGiftIcon}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Gift className="w-5 h-5" />
