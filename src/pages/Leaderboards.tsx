@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, TrendingUp, Heart, Eye, MessageSquare, Sparkles } from "lucide-react";
+import { Trophy, TrendingUp, Heart, Eye, MessageSquare, Sparkles, Gift, Coins } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -33,10 +33,20 @@ interface TopCreator {
   followers_count: number;
 }
 
+interface GiftLeaderboardUser {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  total_coins: number;
+  gift_count: number;
+}
+
 const Leaderboards: React.FC = () => {
   const [timeFilter, setTimeFilter] = useState<"week" | "month" | "all">("week");
   const [trendingPosts, setTrendingPosts] = useState<TrendingPost[]>([]);
   const [topCreators, setTopCreators] = useState<TopCreator[]>([]);
+  const [topGifters, setTopGifters] = useState<GiftLeaderboardUser[]>([]);
+  const [mostGifted, setMostGifted] = useState<GiftLeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   const getTimeFilterDate = () => {
@@ -143,6 +153,84 @@ const Leaderboards: React.FC = () => {
       setTopCreators(sorted.slice(0, 10));
     }
 
+    // Fetch gift leaderboards
+    const { data: giftData } = await supabase
+      .from("gift_transactions")
+      .select("sender_id, recipient_id, coin_amount, created_at")
+      .gte("created_at", filterDate);
+
+    if (giftData) {
+      // Calculate top gifters
+      const gifterMap = new Map<string, { total_coins: number; gift_count: number }>();
+      const recipientMap = new Map<string, { total_coins: number; gift_count: number }>();
+
+      giftData.forEach((tx) => {
+        // Top gifters
+        const gifterStats = gifterMap.get(tx.sender_id) || { total_coins: 0, gift_count: 0 };
+        gifterStats.total_coins += tx.coin_amount;
+        gifterStats.gift_count += 1;
+        gifterMap.set(tx.sender_id, gifterStats);
+
+        // Most gifted
+        const recipientStats = recipientMap.get(tx.recipient_id) || { total_coins: 0, gift_count: 0 };
+        recipientStats.total_coins += tx.coin_amount;
+        recipientStats.gift_count += 1;
+        recipientMap.set(tx.recipient_id, recipientStats);
+      });
+
+      // Get user profiles for gifters
+      const gifterIds = Array.from(gifterMap.keys());
+      const recipientIds = Array.from(recipientMap.keys());
+      const allUserIds = [...new Set([...gifterIds, ...recipientIds])];
+
+      if (allUserIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", allUserIds);
+
+        const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
+
+        // Build top gifters list
+        const giftersList: GiftLeaderboardUser[] = gifterIds
+          .map((id) => {
+            const profile = profileMap.get(id);
+            const stats = gifterMap.get(id)!;
+            return {
+              id,
+              username: profile?.username || "Unknown",
+              avatar_url: profile?.avatar_url || null,
+              total_coins: stats.total_coins,
+              gift_count: stats.gift_count,
+            };
+          })
+          .sort((a, b) => b.total_coins - a.total_coins)
+          .slice(0, 10);
+
+        // Build most gifted list
+        const giftedList: GiftLeaderboardUser[] = recipientIds
+          .map((id) => {
+            const profile = profileMap.get(id);
+            const stats = recipientMap.get(id)!;
+            return {
+              id,
+              username: profile?.username || "Unknown",
+              avatar_url: profile?.avatar_url || null,
+              total_coins: stats.total_coins,
+              gift_count: stats.gift_count,
+            };
+          })
+          .sort((a, b) => b.total_coins - a.total_coins)
+          .slice(0, 10);
+
+        setTopGifters(giftersList);
+        setMostGifted(giftedList);
+      } else {
+        setTopGifters([]);
+        setMostGifted([]);
+      }
+    }
+
     setLoading(false);
   };
 
@@ -200,9 +288,10 @@ const Leaderboards: React.FC = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="posts" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="posts">Trending Posts</TabsTrigger>
               <TabsTrigger value="creators">Top Creators</TabsTrigger>
+              <TabsTrigger value="gifts">Gift Leaderboard</TabsTrigger>
             </TabsList>
 
             {/* Trending Posts */}
@@ -345,6 +434,135 @@ const Leaderboards: React.FC = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Gift Leaderboard */}
+            <TabsContent value="gifts">
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Top Gifters */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Gift className="w-5 h-5 text-pink-500" />
+                      Top Gifters - {getTimeFilterLabel()}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loading ? (
+                      <div className="space-y-4">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="flex items-center gap-4">
+                            <Skeleton className="w-8 h-8" />
+                            <Skeleton className="w-12 h-12 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                              <Skeleton className="h-4 w-1/3" />
+                              <Skeleton className="h-3 w-1/2" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : topGifters.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">
+                        No gifts sent yet
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {topGifters.map((user, index) => (
+                          <Link
+                            key={user.id}
+                            to={`/profile/${user.id}`}
+                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors group"
+                          >
+                            <div className="flex items-center justify-center w-6">
+                              {getRankBadge(index)}
+                            </div>
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage src={user.avatar_url || undefined} />
+                              <AvatarFallback>
+                                {user.username.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                                {user.username}
+                              </h3>
+                              <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Coins className="w-4 h-4 text-yellow-500" />
+                                  <span>{user.total_coins} coins</span>
+                                </div>
+                                <Badge variant="secondary">{user.gift_count} gifts</Badge>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Most Gifted */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Coins className="w-5 h-5 text-yellow-500" />
+                      Most Gifted Creators - {getTimeFilterLabel()}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loading ? (
+                      <div className="space-y-4">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="flex items-center gap-4">
+                            <Skeleton className="w-8 h-8" />
+                            <Skeleton className="w-12 h-12 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                              <Skeleton className="h-4 w-1/3" />
+                              <Skeleton className="h-3 w-1/2" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : mostGifted.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">
+                        No gifts received yet
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {mostGifted.map((user, index) => (
+                          <Link
+                            key={user.id}
+                            to={`/profile/${user.id}`}
+                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors group"
+                          >
+                            <div className="flex items-center justify-center w-6">
+                              {getRankBadge(index)}
+                            </div>
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage src={user.avatar_url || undefined} />
+                              <AvatarFallback>
+                                {user.username.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                                {user.username}
+                              </h3>
+                              <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Coins className="w-4 h-4 text-yellow-500" />
+                                  <span>{user.total_coins} coins earned</span>
+                                </div>
+                                <Badge variant="secondary">{user.gift_count} gifts</Badge>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
