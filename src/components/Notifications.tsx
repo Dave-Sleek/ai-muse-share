@@ -14,6 +14,7 @@ interface Notification {
   id: string;
   post_id: string;
   actor_id: string;
+  gift_id: string | null;
   type: "like" | "comment" | "gift";
   is_read: boolean;
   created_at: string;
@@ -23,6 +24,10 @@ interface Notification {
   posts: {
     title: string;
   };
+  gift?: {
+    name: string;
+    icon: string;
+  } | null;
 }
 
 const Notifications = () => {
@@ -86,10 +91,22 @@ const Notifications = () => {
           .eq("id", notif.post_id)
           .single();
 
+        // Fetch gift details if it's a gift notification
+        let gift = null;
+        if (notif.type === "gift" && notif.gift_id) {
+          const { data: giftData } = await supabase
+            .from("virtual_gifts")
+            .select("name, icon")
+            .eq("id", notif.gift_id)
+            .single();
+          gift = giftData;
+        }
+
         return {
           ...notif,
           profiles: profile || { username: "Unknown" },
           posts: post || { title: "Unknown" },
+          gift,
         };
       })
     );
@@ -178,12 +195,11 @@ const Notifications = () => {
                       ? "liked" 
                       : notification.type === "comment" 
                         ? "commented on" 
-                        : "sent you a gift on"}{" "}
+                        : <>sent you a {notification.gift?.icon} <span className="font-medium">{notification.gift?.name || "gift"}</span> on</>}{" "}
                     your post{" "}
                     <span className="font-medium">
                       "{notification.posts.title}"
                     </span>
-                    {notification.type === "gift" && " 🎁"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {new Date(notification.created_at).toLocaleDateString()}
