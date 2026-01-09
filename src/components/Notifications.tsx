@@ -12,10 +12,10 @@ import { useNavigate } from "react-router-dom";
 
 interface Notification {
   id: string;
-  post_id: string;
+  post_id: string | null;
   actor_id: string;
   gift_id: string | null;
-  type: "like" | "comment" | "gift";
+  type: "like" | "comment" | "gift" | "follow";
   is_read: boolean;
   created_at: string;
   profiles: {
@@ -23,7 +23,7 @@ interface Notification {
   };
   posts: {
     title: string;
-  };
+  } | null;
   gift?: {
     name: string;
     icon: string;
@@ -85,11 +85,16 @@ const Notifications = () => {
           .eq("id", notif.actor_id)
           .single();
 
-        const { data: post } = await supabase
-          .from("posts")
-          .select("title")
-          .eq("id", notif.post_id)
-          .single();
+        // Fetch post details only if post_id exists (not for follow notifications)
+        let post = null;
+        if (notif.post_id) {
+          const { data: postData } = await supabase
+            .from("posts")
+            .select("title")
+            .eq("id", notif.post_id)
+            .single();
+          post = postData;
+        }
 
         // Fetch gift details if it's a gift notification
         let gift = null;
@@ -143,7 +148,11 @@ const Notifications = () => {
 
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id);
-    navigate(`/post/${notification.post_id}`);
+    if (notification.type === "follow") {
+      navigate(`/profile/${notification.actor_id}`);
+    } else if (notification.post_id) {
+      navigate(`/post/${notification.post_id}`);
+    }
   };
 
   return (
@@ -191,15 +200,21 @@ const Notifications = () => {
                     <span className="font-medium">
                       {notification.profiles.username}
                     </span>{" "}
-                    {notification.type === "like" 
-                      ? "liked" 
-                      : notification.type === "comment" 
-                        ? "commented on" 
-                        : <>sent you a {notification.gift?.icon} <span className="font-medium">{notification.gift?.name || "gift"}</span> on</>}{" "}
-                    your post{" "}
-                    <span className="font-medium">
-                      "{notification.posts.title}"
-                    </span>
+                    {notification.type === "follow" ? (
+                      "started following you"
+                    ) : (
+                      <>
+                        {notification.type === "like" 
+                          ? "liked" 
+                          : notification.type === "comment" 
+                            ? "commented on" 
+                            : <>sent you a {notification.gift?.icon} <span className="font-medium">{notification.gift?.name || "gift"}</span> on</>}{" "}
+                        your post{" "}
+                        <span className="font-medium">
+                          "{notification.posts?.title}"
+                        </span>
+                      </>
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {new Date(notification.created_at).toLocaleDateString()}
