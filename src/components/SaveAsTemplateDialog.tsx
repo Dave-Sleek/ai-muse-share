@@ -14,8 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Crown, Coins } from "lucide-react";
 
 interface SaveAsTemplateDialogProps {
   postId: string;
@@ -36,6 +37,23 @@ const TEMPLATE_CATEGORIES = [
   "Other"
 ];
 
+const PREMIUM_CATEGORIES = [
+  "Masterpiece",
+  "Photorealistic",
+  "Cinematic",
+  "Concept Art",
+  "Digital Painting"
+];
+
+const ALL_CATEGORIES = [...TEMPLATE_CATEGORIES, ...PREMIUM_CATEGORIES];
+
+const UNLOCK_COSTS = [
+  { value: 10, label: "10 coins" },
+  { value: 25, label: "25 coins" },
+  { value: 50, label: "50 coins" },
+  { value: 100, label: "100 coins" },
+];
+
 const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
   postId,
   postTitle,
@@ -47,6 +65,8 @@ const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [isPublic, setIsPublic] = useState(true);
+  const [isPremium, setIsPremium] = useState(false);
+  const [unlockCost, setUnlockCost] = useState(25);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
@@ -72,13 +92,17 @@ const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
           description: description.trim() || null,
           category: category || null,
           is_public: isPublic,
+          is_premium: isPremium,
+          unlock_cost: isPremium ? unlockCost : 0,
         });
 
       if (error) throw error;
 
       toast({
         title: "Success!",
-        description: "Your post has been saved as a template",
+        description: isPremium 
+          ? `Your premium template is live! You'll earn ${Math.floor(unlockCost / 2)} coins each time someone unlocks it.`
+          : "Your post has been saved as a template",
       });
 
       setOpen(false);
@@ -137,21 +161,87 @@ const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
                 <SelectValue placeholder="Select a category (optional)" />
               </SelectTrigger>
               <SelectContent>
+                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                  — Standard —
+                </div>
                 {TEMPLATE_CATEGORIES.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}
                   </SelectItem>
                 ))}
+                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                  — Premium —
+                </div>
+                {PREMIUM_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    <span className="flex items-center gap-2">
+                      <Crown className="w-3 h-3 text-yellow-500" />
+                      {cat}
+                    </span>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Premium Toggle */}
+          <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-yellow-500" />
+                <div>
+                  <Label htmlFor="premium" className="font-medium">Make Premium</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Earn coins when users unlock your template
+                  </p>
+                </div>
+              </div>
+              <Switch
+                id="premium"
+                checked={isPremium}
+                onCheckedChange={setIsPremium}
+              />
+            </div>
+
+            {isPremium && (
+              <div className="space-y-2 pt-2 border-t border-yellow-500/20">
+                <Label>Unlock Cost</Label>
+                <Select 
+                  value={unlockCost.toString()} 
+                  onValueChange={(v) => setUnlockCost(parseInt(v))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UNLOCK_COSTS.map((cost) => (
+                      <SelectItem key={cost.value} value={cost.value.toString()}>
+                        <span className="flex items-center gap-2">
+                          <Coins className="w-4 h-4 text-yellow-500" />
+                          {cost.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Coins className="w-3 h-3" />
+                  You'll earn {Math.floor(unlockCost / 2)} coins per unlock (50% creator share)
+                </p>
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save Template"}
+          <Button 
+            onClick={handleSave} 
+            disabled={saving}
+            className={isPremium ? "bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600" : ""}
+          >
+            {saving ? "Saving..." : isPremium ? "Create Premium Template" : "Save Template"}
           </Button>
         </DialogFooter>
       </DialogContent>
