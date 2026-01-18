@@ -5,10 +5,11 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Copy, Users } from "lucide-react";
+import { Sparkles, Copy, Users, Lock, Unlock, Crown, Coins } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { CoinBalance } from "@/components/CoinBalance";
 
 interface Template {
   id: string;
@@ -19,6 +20,8 @@ interface Template {
   created_at: string;
   post_id: string;
   user_id: string;
+  is_premium: boolean;
+  unlock_cost: number;
   posts: {
     id: string;
     title: string;
@@ -30,6 +33,7 @@ interface Template {
     username: string;
     avatar_url: string | null;
   };
+  isUnlocked?: boolean;
 }
 
 const TEMPLATE_CATEGORIES = [
@@ -44,16 +48,35 @@ const TEMPLATE_CATEGORIES = [
   "Other"
 ];
 
+const PREMIUM_CATEGORIES = [
+  "Masterpiece",
+  "Photorealistic",
+  "Cinematic",
+  "Concept Art",
+  "Digital Painting"
+];
+
+const ALL_CATEGORIES = [...TEMPLATE_CATEGORIES, ...PREMIUM_CATEGORIES];
+
 const Templates: React.FC = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [premiumFilter, setPremiumFilter] = useState<string>("all");
+  const [unlocking, setUnlocking] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
+    checkAuth();
     fetchTemplates();
-  }, [categoryFilter]);
+  }, [categoryFilter, premiumFilter]);
+
+  const checkAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    setCurrentUserId(session?.user?.id || null);
+  };
 
   const fetchTemplates = async () => {
     setLoading(true);
@@ -68,13 +91,22 @@ const Templates: React.FC = () => {
         use_count,
         created_at,
         post_id,
-        user_id
+        user_id,
+        is_premium,
+        unlock_cost
       `)
       .eq("is_public", true)
+      .order("is_premium", { ascending: false })
       .order("use_count", { ascending: false });
 
     if (categoryFilter !== "all") {
       query = query.eq("category", categoryFilter);
+    }
+
+    if (premiumFilter === "premium") {
+      query = query.eq("is_premium", true);
+    } else if (premiumFilter === "free") {
+      query = query.eq("is_premium", false);
     }
 
     const { data: templatesData, error } = await query;
@@ -96,9 +128,24 @@ const Templates: React.FC = () => {
       return;
     }
 
-    // Fetch related posts and profiles separately
+    // Fetch related posts and profiles
     const postIds = templatesData.map(t => t.post_id);
     const userIds = templatesData.map(t => t.user_id);
+    const templateIds = templatesData.map(t => t.id);
+
+    // Get current user's unlocks
+    const { data: { session } } = await supabase.auth.getSession();
+    let unlockedTemplateIds: string[] = [];
+
+    if (session?.user?.id) {
+      const { data: unlocks } = await supabase
+        .from("template_unlocks")
+        .select("template_id")
+        .eq("user_id", session.user.id)
+        .in("template_id", templateIds);
+      
+      unlockedTemplateIds = unlocks?.map(u => u.template_id) || [];
+    }
 
     const [{ data: postsData }, { data: profilesData }] = await Promise.all([
       supabase.from("posts").select("id, title, image_url, prompt, ai_model").in("id", postIds),
@@ -119,10 +166,61 @@ const Templates: React.FC = () => {
         username: "Unknown",
         avatar_url: null,
       },
+      isUnlocked: !template.is_premium || unlockedTemplateIds.includes(template.id) || template.user_id === session?.user?.id,
     }));
 
     setTemplates(enrichedTemplates);
     setLoading(false);
+  };
+
+  const handleUnlock = async (template: Template) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to unlock premium templates",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    setUnlocking(template.id);
+
+    try {
+      const { data, error } = await supabase.rpc("unlock_template", {
+        p_template_id: template.id
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string; coins_spent?: number };
+
+      if (result.success) {
+        toast({
+          title: "Template Unlocked! 🎉",
+          description: `You spent ${result.coins_spent} coins to unlock this template`,
+        });
+        // Refresh templates to update unlock status
+        fetchTemplates();
+      } else {
+        toast({
+          title: "Cannot unlock template",
+          description: result.error || "An error occurred",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error unlocking template:", error);
+      toast({
+        title: "Error",
+        description: "Failed to unlock template",
+        variant: "destructive",
+      });
+    } finally {
+      setUnlocking(null);
+    }
   };
 
   const handleRemix = async (template: Template) => {
@@ -135,6 +233,15 @@ const Templates: React.FC = () => {
         variant: "destructive",
       });
       navigate("/auth");
+      return;
+    }
+
+    if (template.is_premium && !template.isUnlocked) {
+      toast({
+        title: "Premium template",
+        description: "Please unlock this template first",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -166,22 +273,57 @@ const Templates: React.FC = () => {
               <Sparkles className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-4xl font-bold gradient-text mb-2">Prompt Templates</h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               Discover and remix successful prompts from the community
             </p>
+            {currentUserId && (
+              <div className="flex justify-center">
+                <CoinBalance />
+              </div>
+            )}
           </div>
 
-          {/* Category Filter */}
-          <div className="flex justify-center mb-8">
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+            <Select value={premiumFilter} onValueChange={setPremiumFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Templates" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Templates</SelectItem>
+                <SelectItem value="free">Free Templates</SelectItem>
+                <SelectItem value="premium">
+                  <span className="flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-yellow-500" />
+                    Premium Templates
+                  </span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="w-64">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
+                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                  — Standard —
+                </div>
                 {TEMPLATE_CATEGORIES.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}
+                  </SelectItem>
+                ))}
+                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                  — Premium —
+                </div>
+                {PREMIUM_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    <span className="flex items-center gap-2">
+                      <Crown className="w-3 h-3 text-yellow-500" />
+                      {cat}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -212,7 +354,20 @@ const Templates: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {templates.map((template) => (
-                <Card key={template.id} className="group hover:shadow-lg transition-shadow">
+                <Card 
+                  key={template.id} 
+                  className={`group hover:shadow-lg transition-shadow relative ${
+                    template.is_premium ? 'ring-2 ring-yellow-500/30 bg-gradient-to-b from-yellow-500/5 to-transparent' : ''
+                  }`}
+                >
+                  {template.is_premium && (
+                    <div className="absolute -top-2 -right-2 z-10">
+                      <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0 shadow-lg">
+                        <Crown className="w-3 h-3 mr-1" />
+                        Premium
+                      </Badge>
+                    </div>
+                  )}
                   <CardHeader>
                     <CardTitle className="text-lg flex items-start justify-between">
                       <span className="line-clamp-2">{template.name}</span>
@@ -229,17 +384,38 @@ const Templates: React.FC = () => {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <Link to={`/post/${template.posts.id}`}>
-                      <img
-                        src={template.posts.image_url}
-                        alt={template.posts.title}
-                        className="w-full h-48 object-cover rounded-lg group-hover:opacity-90 transition-opacity"
-                      />
-                    </Link>
+                    <div className="relative">
+                      <Link to={`/post/${template.posts.id}`}>
+                        <img
+                          src={template.posts.image_url}
+                          alt={template.posts.title}
+                          className={`w-full h-48 object-cover rounded-lg transition-all ${
+                            template.is_premium && !template.isUnlocked 
+                              ? 'blur-sm brightness-75' 
+                              : 'group-hover:opacity-90'
+                          }`}
+                        />
+                      </Link>
+                      {template.is_premium && !template.isUnlocked && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="bg-background/90 backdrop-blur-sm rounded-full p-4 shadow-lg">
+                            <Lock className="w-8 h-8 text-yellow-500" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div className="mt-4 space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Users className="w-4 h-4" />
-                        <span>Used {template.use_count} times</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Users className="w-4 h-4" />
+                          <span>Used {template.use_count} times</span>
+                        </div>
+                        {template.is_premium && (
+                          <div className="flex items-center gap-1 text-yellow-500 font-medium">
+                            <Coins className="w-4 h-4" />
+                            <span>{template.unlock_cost}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         by {template.profiles.username}
@@ -250,14 +426,32 @@ const Templates: React.FC = () => {
                     </div>
                   </CardContent>
                   <CardFooter className="flex gap-2">
-                    <Button
-                      variant="default"
-                      className="flex-1"
-                      onClick={() => handleRemix(template)}
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Remix
-                    </Button>
+                    {template.is_premium && !template.isUnlocked ? (
+                      <Button
+                        variant="default"
+                        className="flex-1 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600"
+                        onClick={() => handleUnlock(template)}
+                        disabled={unlocking === template.id}
+                      >
+                        {unlocking === template.id ? (
+                          <>Unlocking...</>
+                        ) : (
+                          <>
+                            <Unlock className="w-4 h-4 mr-2" />
+                            Unlock for {template.unlock_cost} coins
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="default"
+                        className="flex-1"
+                        onClick={() => handleRemix(template)}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Remix
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       asChild

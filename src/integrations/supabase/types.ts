@@ -596,9 +596,11 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_premium: boolean
           is_public: boolean
           name: string
           post_id: string
+          unlock_cost: number
           updated_at: string
           use_count: number
           user_id: string
@@ -608,9 +610,11 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_premium?: boolean
           is_public?: boolean
           name: string
           post_id: string
+          unlock_cost?: number
           updated_at?: string
           use_count?: number
           user_id: string
@@ -620,9 +624,11 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_premium?: boolean
           is_public?: boolean
           name?: string
           post_id?: string
+          unlock_cost?: number
           updated_at?: string
           use_count?: number
           user_id?: string
@@ -633,6 +639,38 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_unlocks: {
+        Row: {
+          coins_spent: number
+          id: string
+          template_id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          coins_spent?: number
+          id?: string
+          template_id: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          coins_spent?: number
+          id?: string
+          template_id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_unlocks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -814,6 +852,7 @@ export type Database = {
         Args: { p_gift_id: string; p_post_id: string; p_recipient_id: string }
         Returns: boolean
       }
+      unlock_template: { Args: { p_template_id: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
