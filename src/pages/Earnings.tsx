@@ -1,30 +1,16 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { EarningsCard } from "@/components/EarningsCard";
 import { GiftHistory } from "@/components/GiftHistory";
-import { CoinPurchase } from "@/components/CoinPurchase";
 import { Loader2, Coins, TrendingUp, Info } from "lucide-react";
-import { toast } from "sonner";
 
 const Earnings = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  useEffect(() => {
-    const purchase = searchParams.get("purchase");
-    if (purchase === "success") {
-      toast.success("Coins purchased successfully! Your balance has been updated.");
-      setSearchParams({});
-    } else if (purchase === "cancelled") {
-      toast.info("Purchase cancelled");
-      setSearchParams({});
-    }
-  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -109,11 +95,6 @@ const Earnings = () => {
           {/* Earnings Overview */}
           <div className="mb-8">
             <EarningsCard userId={currentUser.id} />
-          </div>
-
-          {/* Purchase Coins */}
-          <div className="glass-effect rounded-2xl p-6 border border-border/40 mb-8">
-            <CoinPurchase />
           </div>
 
           {/* Gift History */}
