@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import PostsCarousel from "@/components/PostsCarousel";
+import FeaturedTemplates from "@/components/FeaturedTemplates";
 
 const Index = () => {
   return (
@@ -11,6 +12,7 @@ const Index = () => {
       <Navbar />
       <Hero />
       <PostsCarousel />
+      <FeaturedTemplates />
       <Features />
       <Footer />
       <CookieConsent />
