@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import PostsCarousel from "@/components/PostsCarousel";
 import FeaturedTemplates from "@/components/FeaturedTemplates";
+import SuggestedUsers from "@/components/SuggestedUsers";
 
 const Index = () => {
   return (
@@ -13,6 +14,7 @@ const Index = () => {
       <Hero />
       <PostsCarousel />
       <FeaturedTemplates />
+      <SuggestedUsers />
       <Features />
       <Footer />
       <CookieConsent />
