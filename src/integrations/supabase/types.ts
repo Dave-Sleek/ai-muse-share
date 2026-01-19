@@ -403,7 +403,7 @@ export type Database = {
           gift_id: string | null
           id: string
           is_read: boolean
-          post_id: string
+          post_id: string | null
           type: string
           user_id: string
         }
@@ -414,7 +414,7 @@ export type Database = {
           gift_id?: string | null
           id?: string
           is_read?: boolean
-          post_id: string
+          post_id?: string | null
           type: string
           user_id: string
         }
@@ -425,7 +425,7 @@ export type Database = {
           gift_id?: string | null
           id?: string
           is_read?: boolean
-          post_id?: string
+          post_id?: string | null
           type?: string
           user_id?: string
         }
