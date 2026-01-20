@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Sparkles, Menu, X } from "lucide-react";
+import { Sparkles, Menu, X, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,14 +10,42 @@ import { CoinBalance } from "./CoinBalance";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkAuthAndRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setIsAuthenticated(!!session);
-    });
+      
+      if (session?.user) {
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+        
+        setIsAdmin(!!roles);
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAuthAndRole();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
+      if (session?.user) {
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .eq('role', 'admin')
+          .maybeSingle()
+          .then(({ data }) => setIsAdmin(!!data));
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -74,6 +102,12 @@ const Navbar = () => {
                 </Link>
                 <CoinBalance />
                 <Notifications />
+                {isAdmin && (
+                  <Link to="/admin" className="text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+                    <Shield className="w-4 h-4" />
+                    Admin
+                  </Link>
+                )}
               </>
             ) : (
               <Link to="/auth">
@@ -180,6 +214,16 @@ const Navbar = () => {
                   <CoinBalance />
                   <Notifications />
                 </div>
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="block text-primary hover:text-primary/80 transition-colors py-2 flex items-center gap-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Shield className="w-4 h-4" />
+                    Admin Dashboard
+                  </Link>
+                )}
               </>
             ) : (
               <Link to="/auth" onClick={() => setIsOpen(false)}>
