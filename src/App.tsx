@@ -20,6 +20,7 @@ import Templates from "./pages/Templates";
 import Challenges from "./pages/Challenges";
 import ChallengeDetail from "./pages/ChallengeDetail";
 import Statistics from "./pages/Statistics";
+import AdminDashboard from "./pages/AdminDashboard";
 import Earnings from "./pages/Earnings";
 import HowToUse from "./pages/HowToUse";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/terms-of-use" element={<><TermsOfUse /><Footer /><CookieConsent /></>} />
             <Route path="/about" element={<><About /><Footer /><CookieConsent /></>} />
             <Route path="/contact" element={<><Contact /><Footer /><CookieConsent /></>} />
+            <Route path="/admin" element={<><AdminDashboard /><Footer /><CookieConsent /></>} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
