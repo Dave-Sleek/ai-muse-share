@@ -47,6 +47,36 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_users: {
+        Row: {
+          banned_at: string
+          banned_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          banned_at?: string
+          banned_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          banned_at?: string
+          banned_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
           collection_id: string | null
@@ -880,6 +910,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_banned: { Args: { _user_id: string }; Returns: boolean }
       send_gift: {
         Args: { p_gift_id: string; p_post_id: string; p_recipient_id: string }
         Returns: boolean

@@ -6,15 +6,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Shield, ShieldCheck, User, MoreHorizontal } from 'lucide-react';
+import { Search, Shield, ShieldCheck, User, MoreHorizontal, Ban, UserCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { BanUserDialog } from './BanUserDialog';
 
 interface UserProfile {
   id: string;
@@ -23,6 +25,7 @@ interface UserProfile {
   created_at: string;
   role?: string;
   posts_count?: number;
+  is_banned?: boolean;
 }
 
 export const UserManagement = () => {
@@ -30,6 +33,8 @@ export const UserManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [banDialogOpen, setBanDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; username: string } | null>(null);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -61,6 +66,15 @@ export const UserManagement = () => {
         .select('user_id')
         .in('user_id', userIds);
 
+      // Fetch banned users
+      const { data: bannedUsers } = await supabase
+        .from('banned_users' as any)
+        .select('user_id')
+        .in('user_id', userIds)
+        .eq('is_active', true);
+
+      const bannedSet = new Set((bannedUsers as any[])?.map(b => b.user_id) || []);
+
       const postCountMap = postCounts?.reduce((acc, post) => {
         acc[post.user_id] = (acc[post.user_id] || 0) + 1;
         return acc;
@@ -75,6 +89,7 @@ export const UserManagement = () => {
         ...p,
         role: roleMap[p.id] || 'user',
         posts_count: postCountMap[p.id] || 0,
+        is_banned: bannedSet.has(p.id),
       })) || [];
 
       // Filter by role if needed
@@ -117,6 +132,28 @@ export const UserManagement = () => {
     } catch (error) {
       console.error('Error updating role:', error);
       toast.error('Failed to update role');
+    }
+  };
+
+  const handleBanClick = (user: UserProfile) => {
+    setSelectedUser({ id: user.id, username: user.username });
+    setBanDialogOpen(true);
+  };
+
+  const handleUnban = async (userId: string, username: string) => {
+    try {
+      const { error } = await supabase
+        .from('banned_users' as any)
+        .update({ is_active: false } as any)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      toast.success(`${username} has been unbanned`);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error unbanning user:', error);
+      toast.error('Failed to unban user');
     }
   };
 
@@ -186,7 +223,15 @@ export const UserManagement = () => {
                           <AvatarImage src={user.avatar_url || ''} />
                           <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <span className="font-medium">{user.username}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{user.username}</span>
+                          {user.is_banned && (
+                            <Badge variant="destructive" className="text-xs">
+                              <Ban className="h-3 w-3 mr-1" />
+                              Banned
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>{getRoleBadge(user.role || 'user')}</TableCell>
@@ -201,14 +246,32 @@ export const UserManagement = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleRoleChange(user.id, 'admin')}>
+                            <ShieldCheck className="h-4 w-4 mr-2" />
                             Make Admin
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleRoleChange(user.id, 'moderator')}>
+                            <Shield className="h-4 w-4 mr-2" />
                             Make Moderator
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleRoleChange(user.id, 'user')}>
+                            <User className="h-4 w-4 mr-2" />
                             Remove Role
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {user.is_banned ? (
+                            <DropdownMenuItem onClick={() => handleUnban(user.id, user.username)}>
+                              <UserCheck className="h-4 w-4 mr-2" />
+                              Unban User
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem 
+                              onClick={() => handleBanClick(user)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Ban className="h-4 w-4 mr-2" />
+                              Ban User
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -224,6 +287,16 @@ export const UserManagement = () => {
           </div>
         )}
       </CardContent>
+
+      {selectedUser && (
+        <BanUserDialog
+          open={banDialogOpen}
+          onOpenChange={setBanDialogOpen}
+          userId={selectedUser.id}
+          username={selectedUser.username}
+          onSuccess={fetchUsers}
+        />
+      )}
     </Card>
   );
 };

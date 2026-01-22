@@ -7,8 +7,9 @@ import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { PostModeration } from '@/components/admin/PostModeration';
 import { ChallengeManagement } from '@/components/admin/ChallengeManagement';
+import { BannedUsers } from '@/components/admin/BannedUsers';
 import Navbar from '@/components/Navbar';
-import { Shield, Users, Image, Trophy, BarChart3, Loader2 } from 'lucide-react';
+import { Shield, Users, Image, Trophy, BarChart3, Loader2, Ban } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -55,10 +56,14 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
+          <TabsList className="grid w-full grid-cols-5 lg:w-[600px]">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Users</span>
+            </TabsTrigger>
+            <TabsTrigger value="banned" className="flex items-center gap-2">
+              <Ban className="h-4 w-4" />
+              <span className="hidden sm:inline">Banned</span>
             </TabsTrigger>
             <TabsTrigger value="posts" className="flex items-center gap-2">
               <Image className="h-4 w-4" />
@@ -76,6 +81,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="users">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="banned">
+            <BannedUsers />
           </TabsContent>
 
           <TabsContent value="posts">
