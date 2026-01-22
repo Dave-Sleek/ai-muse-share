@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { AdminStats } from '@/components/admin/AdminStats';
+import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { PostModeration } from '@/components/admin/PostModeration';
 import { ChallengeManagement } from '@/components/admin/ChallengeManagement';
@@ -49,8 +50,12 @@ const AdminDashboard = () => {
           <AdminStats />
         </div>
 
+        <div className="mb-8">
+          <AdminAnalytics />
+        </div>
+
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Users</span>
@@ -62,6 +67,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="challenges" className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
               <span className="hidden sm:inline">Challenges</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
           </TabsList>
 
@@ -75,6 +84,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="challenges">
             <ChallengeManagement />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <AdminAnalytics />
           </TabsContent>
         </Tabs>
       </main>
