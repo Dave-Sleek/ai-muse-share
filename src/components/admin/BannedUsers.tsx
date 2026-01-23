@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Ban, UserCheck } from 'lucide-react';
+import { Ban, UserCheck, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { exportToCSV } from '@/lib/csvExport';
 
 interface BannedUser {
   id: string;
@@ -96,13 +97,37 @@ export const BannedUsers = () => {
     return <Badge variant="secondary">Suspended until {formatDate(expiresAt)}</Badge>;
   };
 
+  const handleExportBannedUsers = () => {
+    if (bannedUsers.length === 0) {
+      toast.error('No banned users to export');
+      return;
+    }
+
+    const exportData = bannedUsers.map(ban => ({
+      username: ban.profile?.username || 'Unknown',
+      reason: ban.reason || 'No reason provided',
+      banned_at: new Date(ban.banned_at).toLocaleDateString(),
+      expires_at: ban.expires_at ? new Date(ban.expires_at).toLocaleDateString() : 'Permanent',
+      status: ban.is_active ? 'Active' : 'Inactive',
+    }));
+
+    exportToCSV(exportData, `banned_users_export_${new Date().toISOString().split('T')[0]}`);
+    toast.success('Banned users exported successfully');
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Ban className="h-5 w-5 text-destructive" />
-          Banned Users ({bannedUsers.length})
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Ban className="h-5 w-5 text-destructive" />
+            Banned Users ({bannedUsers.length})
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={handleExportBannedUsers} className="gap-2">
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (

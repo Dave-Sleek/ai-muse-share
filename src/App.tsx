@@ -32,6 +32,7 @@ import About from "./components/About";
 import CookieConsent from "./components/CookieConsent";
 import RouteChangeLoader from "./components/RouteChangeLoader";
 import ScrollToTop from "./components/ScrollToTop";
+import { BanCheckProvider } from "./components/BanCheckProvider";
 
 const queryClient = new QueryClient();
 
@@ -42,41 +43,43 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <RouteChangeLoader />
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/gallery" element={<><Gallery /><Footer /><CookieConsent /></>} />
-            <Route path="/auth" element={<><Auth /><Footer /><CookieConsent /></>} />
-            <Route path="/post/:id" element={<><PostDetail /><Footer /><CookieConsent /></>} />
-            <Route path="/create" element={<><CreatePost /><Footer /><CookieConsent /></>} />
-            <Route path="/edit/:id" element={<><EditPost /><Footer /><CookieConsent /></>} />
-            <Route path="/profile" element={<><Profile /><Footer /><CookieConsent /></>} />
-            <Route path="/profile/:userId" element={<><Profile /><Footer /><CookieConsent /></>} />
-            <Route path="/discover" element={<><Discover /><Footer /><CookieConsent /></>} />
-            <Route path="/community" element={<><Community /><Footer /><CookieConsent /></>} />
-            <Route path="/collections" element={<><Collections /><Footer /><CookieConsent /></>} />
-            <Route path="/collections/:id" element={<><CollectionDetail /><Footer /><CookieConsent /></>} />
-            <Route path="/leaderboards" element={<><Leaderboards /><Footer /><CookieConsent /></>} />
-            <Route path="/templates" element={<><Templates /><Footer /><CookieConsent /></>} />
-            <Route path="/challenges" element={<><Challenges /><Footer /><CookieConsent /></>} />
-            <Route path="/challenges/:id" element={<><ChallengeDetail /><Footer /><CookieConsent /></>} />
-            <Route path="/statistics" element={<><Statistics /><Footer /><CookieConsent /></>} />
-            <Route path="/earnings" element={<><Earnings /><CookieConsent /></>} />
-            <Route path="/how-to-use" element={<><HowToUse /><Footer /><CookieConsent /></>} />
-            <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /><CookieConsent /></>} />
-            <Route path="/terms-of-use" element={<><TermsOfUse /><Footer /><CookieConsent /></>} />
-            <Route path="/about" element={<><About /><Footer /><CookieConsent /></>} />
-            <Route path="/contact" element={<><Contact /><Footer /><CookieConsent /></>} />
-            <Route path="/admin" element={<><AdminDashboard /><Footer /><CookieConsent /></>} />
+          <BanCheckProvider>
+            <RouteChangeLoader />
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/gallery" element={<><Gallery /><Footer /><CookieConsent /></>} />
+              <Route path="/auth" element={<><Auth /><Footer /><CookieConsent /></>} />
+              <Route path="/post/:id" element={<><PostDetail /><Footer /><CookieConsent /></>} />
+              <Route path="/create" element={<><CreatePost /><Footer /><CookieConsent /></>} />
+              <Route path="/edit/:id" element={<><EditPost /><Footer /><CookieConsent /></>} />
+              <Route path="/profile" element={<><Profile /><Footer /><CookieConsent /></>} />
+              <Route path="/profile/:userId" element={<><Profile /><Footer /><CookieConsent /></>} />
+              <Route path="/discover" element={<><Discover /><Footer /><CookieConsent /></>} />
+              <Route path="/community" element={<><Community /><Footer /><CookieConsent /></>} />
+              <Route path="/collections" element={<><Collections /><Footer /><CookieConsent /></>} />
+              <Route path="/collections/:id" element={<><CollectionDetail /><Footer /><CookieConsent /></>} />
+              <Route path="/leaderboards" element={<><Leaderboards /><Footer /><CookieConsent /></>} />
+              <Route path="/templates" element={<><Templates /><Footer /><CookieConsent /></>} />
+              <Route path="/challenges" element={<><Challenges /><Footer /><CookieConsent /></>} />
+              <Route path="/challenges/:id" element={<><ChallengeDetail /><Footer /><CookieConsent /></>} />
+              <Route path="/statistics" element={<><Statistics /><Footer /><CookieConsent /></>} />
+              <Route path="/earnings" element={<><Earnings /><CookieConsent /></>} />
+              <Route path="/how-to-use" element={<><HowToUse /><Footer /><CookieConsent /></>} />
+              <Route path="/privacy-policy" element={<><PrivacyPolicy /><Footer /><CookieConsent /></>} />
+              <Route path="/terms-of-use" element={<><TermsOfUse /><Footer /><CookieConsent /></>} />
+              <Route path="/about" element={<><About /><Footer /><CookieConsent /></>} />
+              <Route path="/contact" element={<><Contact /><Footer /><CookieConsent /></>} />
+              <Route path="/admin" element={<><AdminDashboard /><Footer /><CookieConsent /></>} />
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BanCheckProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
-  </QueryClientProvider >
+  </QueryClientProvider>
 );
 
 export default App;

@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Shield, ShieldCheck, User, MoreHorizontal, Ban, UserCheck } from 'lucide-react';
+import { Search, Shield, ShieldCheck, User, MoreHorizontal, Ban, UserCheck, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { BanUserDialog } from './BanUserDialog';
+import { exportToCSV } from '@/lib/csvExport';
 
 interface UserProfile {
   id: string;
@@ -168,10 +169,34 @@ export const UserManagement = () => {
     }
   };
 
+  const handleExportUsers = () => {
+    if (users.length === 0) {
+      toast.error('No users to export');
+      return;
+    }
+
+    const exportData = users.map(user => ({
+      username: user.username,
+      role: user.role || 'user',
+      posts_count: user.posts_count || 0,
+      is_banned: user.is_banned ? 'Yes' : 'No',
+      joined: new Date(user.created_at).toLocaleDateString(),
+    }));
+
+    exportToCSV(exportData, `users_export_${new Date().toISOString().split('T')[0]}`);
+    toast.success('Users exported successfully');
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>User Management</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>User Management</CardTitle>
+          <Button variant="outline" size="sm" onClick={handleExportUsers} className="gap-2">
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
         <div className="flex flex-col sm:flex-row gap-4 mt-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
