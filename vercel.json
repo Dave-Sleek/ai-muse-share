@@ -1,5 +1,18 @@
+
+
 {
-    "rewrites": [
-        {"source": "/(.*)", "destination": "/"}
-    ]
+  "rewrites": [
+    {
+      "source": "/post/:id",
+      "destination": "/api/og?id=:id"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
 }
