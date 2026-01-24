@@ -1,11 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
 export const config = { runtime: "edge" };
-
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_ANON_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req: Request) {
   try {
@@ -19,21 +12,28 @@ export default async function handler(req: Request) {
       );
     }
 
-    // Fetch post from Supabase
-    const { data: post, error } = await supabase
-      .from('posts')         // Replace 'posts' with your table name
-      .select('title, description, image') // Fields you want for OG
-      .eq('id', id)
-      .single();
+    // --- Fetch post from Supabase REST API ---
+    const res = await fetch(
+      `https://ai-muse-share.lovable.app.supabase.co/rest/v1/posts?id=eq.${id}`,
+      {
+        headers: {
+          'apikey': process.env.SUPABASE_ANON_KEY!,
+          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY!}`,
+          'Accept': 'application/json'
+        }
+      }
+    );
 
-    if (error || !post) {
+    const data = await res.json();
+    const post = data[0];
+
+    if (!post) {
       return new Response(
         `<!doctype html><html><head><title>Post Not Found</title></head><body></body></html>`,
         { headers: { "content-type": "text/html" }, status: 404 }
       );
     }
 
-    // Return HTML with OG tags
     return new Response(
       `<!doctype html>
       <html>
