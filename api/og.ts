@@ -25,7 +25,7 @@ export default async function handler(req: Request) {
     );
 
     const data = await res.json();
-    const post = data[0];
+    const post = data[0]; // REST always returns an array
 
     if (!post) {
       return new Response(
@@ -34,14 +34,15 @@ export default async function handler(req: Request) {
       );
     }
 
+    // --- Return OG HTML ---
     return new Response(
       `<!doctype html>
       <html>
         <head>
           <title>${post.title}</title>
           <meta property="og:title" content="${post.title}" />
-          <meta property="og:description" content="${post.description}" />
-          <meta property="og:image" content="${post.image}" />
+          <meta property="og:description" content="${post.description || 'Check out this AI prompt!'}" />
+          <meta property="og:image" content="${post.image || 'https://lovable.dev/opengraph-image-p98pqg.png'}" />
           <meta property="og:type" content="article" />
         </head>
         <body></body>
