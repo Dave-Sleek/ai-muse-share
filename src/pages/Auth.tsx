@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { usernameSchema, emailSchema, passwordSchema } from "@/lib/validation";
 
@@ -37,6 +37,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -138,6 +139,7 @@ const Auth = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -153,6 +155,7 @@ const Auth = () => {
         description: error.message,
         variant: "destructive",
       });
+      setGoogleLoading(false);
     }
   };
 
@@ -248,9 +251,16 @@ const Auth = () => {
                 size="lg"
                 className="w-full"
                 onClick={handleGoogleSignIn}
+                disabled={googleLoading}
               >
-                <GoogleIcon />
-                <span className="ml-2">Continue with Google</span>
+                {googleLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <GoogleIcon />
+                )}
+                <span className="ml-2">
+                  {googleLoading ? "Connecting..." : "Continue with Google"}
+                </span>
               </Button>
             </>
           )}
