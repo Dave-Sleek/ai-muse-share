@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { usernameSchema, emailSchema, passwordSchema } from "@/lib/validation";
 
 const GoogleIcon = () => (
@@ -38,6 +39,7 @@ const Auth = () => {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -218,6 +220,22 @@ const Auth = () => {
                   minLength={6}
                   className="bg-background/50"
                 />
+              </div>
+            )}
+
+            {!isForgotPassword && !isSignUp && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
+                />
+                <Label
+                  htmlFor="rememberMe"
+                  className="text-sm font-normal cursor-pointer"
+                >
+                  Remember me
+                </Label>
               </div>
             )}
 
