@@ -34,15 +34,19 @@ export default async function handler(req: Request) {
       );
     }
 
-    // --- Return OG HTML ---
+    // --- Use post fields ---
+    const title = post.title || "PromptShare - Share Your AI Art & Prompts";
+    const description = post.prompt || "Check out this AI prompt on PromptShare!";
+    const image = post.image_url || "https://lovable.dev/opengraph-image-p98pqg.png";
+
     return new Response(
       `<!doctype html>
       <html>
         <head>
-          <title>${post.title}</title>
-          <meta property="og:title" content="${post.title}" />
-          <meta property="og:description" content="${post.description || 'Check out this AI prompt!'}" />
-          <meta property="og:image" content="${post.image || 'https://lovable.dev/opengraph-image-p98pqg.png'}" />
+          <title>${title}</title>
+          <meta property="og:title" content="${title}" />
+          <meta property="og:description" content="${description}" />
+          <meta property="og:image" content="${image}" />
           <meta property="og:type" content="article" />
         </head>
         <body></body>
