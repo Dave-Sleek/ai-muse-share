@@ -8,7 +8,24 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import { usernameSchema, emailSchema, passwordSchema } from "@/lib/validation";
+
+const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+  let score = 0;
+  
+  if (password.length >= 6) score += 1;
+  if (password.length >= 8) score += 1;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+  if (/\d/.test(password)) score += 1;
+  if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 1;
+
+  if (score <= 1) return { score: 20, label: "Weak", color: "bg-destructive" };
+  if (score === 2) return { score: 40, label: "Fair", color: "bg-orange-500" };
+  if (score === 3) return { score: 60, label: "Good", color: "bg-yellow-500" };
+  if (score === 4) return { score: 80, label: "Strong", color: "bg-lime-500" };
+  return { score: 100, label: "Very Strong", color: "bg-green-500" };
+};
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -220,6 +237,22 @@ const Auth = () => {
                   minLength={6}
                   className="bg-background/50"
                 />
+                {isSignUp && password && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Password strength</span>
+                      <span className={`font-medium ${getPasswordStrength(password).color.replace('bg-', 'text-')}`}>
+                        {getPasswordStrength(password).label}
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-300 ${getPasswordStrength(password).color}`}
+                        style={{ width: `${getPasswordStrength(password).score}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
