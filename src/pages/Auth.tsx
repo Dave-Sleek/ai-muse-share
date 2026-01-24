@@ -53,6 +53,7 @@ const Auth = () => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -95,6 +96,10 @@ const Auth = () => {
           const usernameResult = usernameSchema.safeParse(username);
           if (!usernameResult.success) {
             throw new Error(usernameResult.error.errors[0].message);
+          }
+          
+          if (password !== confirmPassword) {
+            throw new Error("Passwords do not match");
           }
         }
       } else {
@@ -263,6 +268,43 @@ const Auth = () => {
                       />
                     </div>
                   </div>
+                )}
+              </div>
+            )}
+
+            {isSignUp && !isForgotPassword && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className={`bg-background/50 pr-10 ${
+                      confirmPassword && password !== confirmPassword
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : confirmPassword && password === confirmPassword
+                        ? "border-green-500 focus-visible:ring-green-500"
+                        : ""
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-xs text-destructive">Passwords do not match</p>
+                )}
+                {confirmPassword && password === confirmPassword && (
+                  <p className="text-xs text-green-500">Passwords match</p>
                 )}
               </div>
             )}
