@@ -4,13 +4,20 @@ export default async function handler(req: Request) {
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
 
-    // TEMP example (replace with real API)
-    const post = {
-        title: "PromptShare - Share Your AI Art & Prompts",
-        description: "Discover and share AI-generated images with prompts. Connect with a creative community passionate about AI art.",
-        image: "https://lovable.dev/opengraph-image-p98pqg.png"
-    };
+    // --- Replace this with your real API call ---
+    // Example with fetch to your backend
+    const res = await fetch(`https://promptshare-api.vercel.app/posts/${id}`);
+    const post = await res.json();
 
+    // Fallback if post not found
+    if (!post) {
+        return new Response(
+            `<!doctype html><html><head><title>Prompt Not Found</title></head><body></body></html>`,
+            { headers: { "content-type": "text/html" } }
+        );
+    }
+
+    // --- Return HTML with post-specific OG tags ---
     return new Response(
         `<!doctype html>
     <html>
