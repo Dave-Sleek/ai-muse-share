@@ -1,5 +1,15 @@
 export const config = { runtime: "edge" };
 
+// HTML escape function to prevent XSS attacks
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export default async function handler(req: Request) {
   try {
     const url = new URL(req.url);
@@ -13,8 +23,9 @@ export default async function handler(req: Request) {
     }
 
     // --- Fetch post from Supabase REST API ---
+    const supabaseUrl = process.env.SUPABASE_URL || 'https://yhnmadrqghlmeknwujii.supabase.co';
     const res = await fetch(
-      `https://ai-muse-share.lovable.app.supabase.co/rest/v1/posts?id=eq.${id}`,
+      `${supabaseUrl}/rest/v1/posts?id=eq.${encodeURIComponent(id)}`,
       {
         headers: {
           'apikey': process.env.SUPABASE_ANON_KEY!,
@@ -34,10 +45,11 @@ export default async function handler(req: Request) {
       );
     }
 
-    // --- Use post fields ---
-    const title = post.title || "PromptShare - Share Your AI Art & Prompts";
-    const description = post.prompt || "Check out this AI prompt on PromptShare!";
-    const image = post.image_url || "https://lovable.dev/opengraph-image-p98pqg.png";
+    // --- Sanitize post fields to prevent XSS ---
+    const title = escapeHtml(post.title || "PromptShare - Share Your AI Art & Prompts");
+    const description = escapeHtml(post.prompt || "Check out this AI prompt on PromptShare!");
+    // Image URLs should be validated but don't need HTML escaping in content attribute
+    const image = post.image_url || "https://ai-muse-share.lovable.app/og-image.png";
 
     return new Response(
       `<!doctype html>
@@ -46,8 +58,13 @@ export default async function handler(req: Request) {
           <title>${title}</title>
           <meta property="og:title" content="${title}" />
           <meta property="og:description" content="${description}" />
-          <meta property="og:image" content="${image}" />
+          <meta property="og:image" content="${escapeHtml(image)}" />
           <meta property="og:type" content="article" />
+          <meta property="og:site_name" content="PromptShare" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="${title}" />
+          <meta name="twitter:description" content="${description}" />
+          <meta name="twitter:image" content="${escapeHtml(image)}" />
         </head>
         <body></body>
       </html>`,
