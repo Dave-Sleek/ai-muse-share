@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit, Eye, Reply, Sparkles } from "lucide-react";
+import { Heart, MessageCircle, Share2, ArrowLeft, Loader2, Edit, Eye, Reply, Sparkles, Copy, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 // import Footer from "@/components/Footer";
@@ -12,6 +12,7 @@ import { commentSchema } from "@/lib/validation";
 import BookmarkButton from "@/components/BookmarkButton";
 import SaveAsTemplateDialog from "@/components/SaveAsTemplateDialog";
 import { SendGiftDialog } from "@/components/SendGiftDialog";
+import SEOHead from "@/components/SEOHead";
 
 interface Post {
   id: string;
@@ -55,6 +56,7 @@ const PostDetail = () => {
   const [isTemplate, setIsTemplate] = useState(false);
   const [templateInfo, setTemplateInfo] = useState<any>(null);
   const [remixInfo, setRemixInfo] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchPost();
@@ -451,20 +453,24 @@ const PostDetail = () => {
   };
 
   const shareToSocial = (platform: string) => {
-    const url = window.location.href;
+    const url = `https://ai-muse-share.lovable.app/post/${id}`;
     const text = `Check out this AI art: ${post?.title}`;
 
     const urls: { [key: string]: string } = {
       x: `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`,
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
     };
 
     if (platform === "copy") {
       navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
       toast({
-        title: "Link copied",
-        description: "Post link copied to clipboard",
+        title: "Link copied!",
+        description: "Share this link anywhere to show a preview of your post",
       });
     } else {
       window.open(urls[platform], "_blank");
@@ -489,6 +495,13 @@ const PostDetail = () => {
 
   return (
     <div className="min-h-screen">
+      <SEOHead 
+        title={`${post.title} | PromptShare`}
+        description={post.prompt}
+        image={post.image_url}
+        url={`https://ai-muse-share.lovable.app/post/${post.id}`}
+        type="article"
+      />
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-8 mt-16">
         <Button
@@ -590,6 +603,9 @@ const PostDetail = () => {
 
             <div className="mb-6">
               <h3 className="text-sm font-semibold mb-2">Share this post</h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                When shared, links will show the post image, title and description as a preview
+              </p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
@@ -618,10 +634,35 @@ const PostDetail = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => shareToSocial("copy")}
+                  onClick={() => shareToSocial("whatsapp")}
                 >
                   <Share2 className="w-4 h-4 mr-2" />
-                  Copy Link
+                  WhatsApp
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => shareToSocial("telegram")}
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Telegram
+                </Button>
+                <Button
+                  variant={copied ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => shareToSocial("copy")}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Link
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
